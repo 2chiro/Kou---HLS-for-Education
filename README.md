@@ -1,4 +1,4 @@
-# Electron-React-Redux-Starter
+# HLS-CAD-ELECTRON
 
 ## Install
 

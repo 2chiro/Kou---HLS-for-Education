@@ -6,9 +6,9 @@ export default class Canvas extends Component {
     this.canvas = this.ctx = null
     this.animationIds = null
     this.state = {
-      mouseover: false,
-      ratioId: 4, ratio: [0.4, 0.5, 0.64, 0.82, 1, 1.2, 1.5, 1.8, 2.2, 2.6, 3.2],
-      mouse_x: 0, mouse_y: 0,
+      mouseover: false, isDragging: false,
+      ratioId: 4, ratio: [0.4, 0.5, 0.64, 0.82, 1, 1.2, 1.5, 1.8, 2.2, 2.6, 3.2], before_ratio: 1,
+      mouse_x: 0, mouse_y: 0, origin_x: 0, origin_y: 0, before_x: 0, before_y: 0,
       width: null, height: null
     }
   }
@@ -31,7 +31,33 @@ export default class Canvas extends Component {
   renderCanvas (ctx) {
     this.animationIds = requestAnimationFrame(() => {this.renderCanvas(ctx)})
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    var ratio = this.state.ratio[this.state.ratioId]
+    const ratio = this.state.ratio[this.state.ratioId]
+    const nodeInfo =  this.props.nodeInfo[this.props.selectTabId]
+    const nodeType = nodeInfo.nodeType
+    const nodeX = nodeInfo.nodeX
+    const nodeY = nodeInfo.nodeY
+    for (var i in nodeType) {
+      switch (nodeType[i]) {
+        case 'A':
+          drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+          break
+        case 'S':
+          drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+          break
+        case 'M':
+          drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+          break
+        case 'D':
+          drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+          break
+        case 'I':
+          drawIn(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+          break
+        case 'O':
+          drawOut(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+          break
+      }
+    }
     if (this.state.mouseover) {
       switch (this.props.id) {
         case 1:
@@ -290,10 +316,21 @@ export default class Canvas extends Component {
   doMouseMove (e) {
     var x = e.clientX - this.canvas.offsetLeft
     var y = e.clientY - this.canvas.offsetTop
+    var ratio = this.state.ratio[this.state.ratioId]
+    if (this.state.isDragging) {
+      switch (this.props.dfgMode) {
+        case 2:
+          var origin_x = (this.state.mouse_x - x) / ratio + this.state.origin_x
+          var origin_y = (this.state.mouse_y - y) / ratio + this.state.origin_y
+          this.setState({origin_x: origin_x, origin_y: origin_y})
+      }
+    }
+
     this.setState({mouse_x: x, mouse_y: y})
   }
   doWheel (e) {
     var ratioId = this.state.ratioId
+    this.setState({before_ratio: this.state.ratio[ratioId]})
     if (e.deltaY > 0) {
       ratioId = ratioId + 1
       if (ratioId > 10) {
@@ -305,7 +342,41 @@ export default class Canvas extends Component {
         ratioId = 0
       }
     }
-    this.setState({ratioId: ratioId})
+    var ratio = this.state.ratio[ratioId]
+    var origin_x = (this.state.mouse_x / this.state.before_ratio) - (this.state.mouse_x / ratio) + this.state.origin_x
+    var origin_y = (this.state.mouse_y / this.state.before_ratio) - (this.state.mouse_y / ratio) + this.state.origin_y
+    this.setState({ratioId: ratioId, origin_x: origin_x, origin_y: origin_y})
+  }
+  doMouseDown () {
+    this.setState({isDragging: true})
+  }
+  doMouseUp () {
+    this.setState({isDragging: false})
+    var ratio = this.state.ratio[this.state.ratioId]
+    var nodeX = this.state.mouse_x / ratio + this.state.origin_x
+    var nodeY = this.state.mouse_y / ratio + this.state.origin_y
+    var nodeType
+    switch (this.props.dfgMode) {
+      case 3:
+        nodeType = 'A'
+        break
+      case 4:
+        nodeType = 'S'
+        break
+      case 5:
+        nodeType = 'M'
+        break
+      case 6:
+        nodeType = 'D'
+        break
+      case 7:
+        nodeType = 'I'
+        break
+      case 8:
+        nodeType = 'O'
+        break
+    }
+    this.props.putNodeHandler(this.props.selectTabId, nodeType, nodeX, nodeY)
   }
   render () {
     const doMouseOver = () => {
@@ -323,6 +394,8 @@ export default class Canvas extends Component {
         onMouseMove={e => this.doMouseMove(e)}
         onMouseOver={doMouseOver}
         onMouseOut={doMouseOut}
+        onMouseDown={() => this.doMouseDown()}
+        onMouseUp={() => this.doMouseUp()}
         onWheel={e => this.doWheel(e)}
         >
       </canvas>
