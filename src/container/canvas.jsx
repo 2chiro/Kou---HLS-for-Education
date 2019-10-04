@@ -12,6 +12,9 @@ const mapDispatchToProps = dispatch => {
     return {
         putNodeHandler: (tabId, nodeType, nodeX, nodeY) => {
             dispatch(Actions.putNode(tabId, nodeType, nodeX, nodeY))
+        },
+        removeNodeHandler: (tabId, selectNode) => {
+            dispatch(Actions.removeNode(tabId, selectNode))
         }
     }
 }

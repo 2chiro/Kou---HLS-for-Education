@@ -9,6 +9,7 @@ export default class Canvas extends Component {
       mouseover: false, isDragging: false,
       ratioId: 4, ratio: [0.4, 0.5, 0.64, 0.82, 1, 1.2, 1.5, 1.8, 2.2, 2.6, 3.2], before_ratio: 1,
       mouse_x: 0, mouse_y: 0, origin_x: 0, origin_y: 0, before_x: 0, before_y: 0,
+      selectNode: [],
       width: null, height: null
     }
   }
@@ -324,9 +325,56 @@ export default class Canvas extends Component {
           var origin_y = (this.state.mouse_y - y) / ratio + this.state.origin_y
           this.setState({origin_x: origin_x, origin_y: origin_y})
       }
+    } else {
+      const nodeInfo = this.props.nodeInfo[this.props.selectTabId]
+      const selectnode = selectNode(x / ratio + this.state.origin_x, y / ratio + this.state.origin_y, nodeInfo)
+      this.setState({selectNode: selectnode})
+      console.log(selectnode)
     }
 
     this.setState({mouse_x: x, mouse_y: y})
+
+    function selectNode (x, y, nodeInfo) {
+      const nodeType = nodeInfo.nodeType
+      const nodeX = nodeInfo.nodeX
+      const nodeY = nodeInfo.nodeY
+      let selectnode = [-1,-1,-1]
+      for (var i in nodeType) {
+        if (Math.pow(nodeX[i] - x, 2) + Math.pow(nodeY[i] - y, 2) <= Math.pow(20, 2)) {
+          selectnode.splice(0,1,i)
+          return selectnode
+        }
+        switch (nodeType[i]) {
+          case 'A':
+          case 'S':
+          case 'M':
+          case 'D':
+            if (Math.pow(nodeX[i] - x, 2) + Math.pow(nodeY[i] - y + 35, 2) <= Math.pow(8, 2)) {
+              selectnode.splice(0,2,i,0)
+              return selectnode
+            }
+            if (Math.pow(nodeX[i] - x - 20, 2) + Math.pow(nodeY[i] - y - 35, 2) <= Math.pow(8, 2)) {
+              selectnode.splice(0,2,i,1)
+              return selectnode
+            }
+            if (Math.pow(nodeX[i] - x + 20, 2) + Math.pow(nodeY[i] - y - 35, 2) <= Math.pow(8, 2)) {
+              selectnode.splice(0,2,i,2)
+              return selectnode
+            }
+          case 'I':
+            if (Math.pow(nodeX[i] - x, 2) + Math.pow(nodeY[i] - y + 35, 2) <= Math.pow(8, 2)) {
+              selectnode.splice(0,2,i,0)
+              return selectnode
+            }
+          case 'O':
+            if (Math.pow(nodeX[i] - x, 2) + Math.pow(nodeY[i] - y - 35, 2) <= Math.pow(8, 2)) {
+              selectnode.splice(0,2,i,3)
+              return selectnode
+            }
+        }
+      }
+      return selectnode
+    }
   }
   doWheel (e) {
     var ratioId = this.state.ratioId
@@ -357,6 +405,11 @@ export default class Canvas extends Component {
     var nodeY = this.state.mouse_y / ratio + this.state.origin_y
     var nodeType
     switch (this.props.dfgMode) {
+      case 1:
+        if (this.state.selectNode[0] !== -1) {
+          this.props.removeNodeHandler(this.props.selectTabId, this.state.selectNode)
+        }
+        break
       case 3:
         nodeType = 'A'
         break
@@ -376,7 +429,9 @@ export default class Canvas extends Component {
         nodeType = 'O'
         break
     }
-    this.props.putNodeHandler(this.props.selectTabId, nodeType, nodeX, nodeY)
+    if (this.props.dfgMode >= 3 && this.props.dfgMode <= 8) {
+      this.props.putNodeHandler(this.props.selectTabId, nodeType, nodeX, nodeY)
+    }
   }
   render () {
     const doMouseOver = () => {

@@ -13,6 +13,13 @@ const Actions = {
             nodeX: nodeX,
             nodeY: nodeY
         }
+    },
+    removeNode: (tabId, selectNode) => {
+        return {
+            type: 'REMOVE_NODE',
+            tabId: tabId,
+            nodeId: selectNode
+        }
     }
 }
 
