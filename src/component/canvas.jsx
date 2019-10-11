@@ -8,8 +8,8 @@ export default class Canvas extends Component {
     this.state = {
       mouseover: false, isDragging: false,
       ratioId: 4, ratio: [0.4, 0.5, 0.64, 0.82, 1, 1.2, 1.5, 1.8, 2.2, 2.6, 3.2], before_ratio: 1,
-      mouse_x: 0, mouse_y: 0, origin_x: 0, origin_y: 0, before_x: 0, before_y: 0,
-      selectNode: [],
+      mouse_x: 0, mouse_y: 0, origin_x: 0, origin_y: 0,
+      selectNode: [], selectEdge: false, selectEdgeStore: [],
       width: null, height: null
     }
   }
@@ -37,6 +37,48 @@ export default class Canvas extends Component {
     const nodeType = nodeInfo.nodeType
     const nodeX = nodeInfo.nodeX
     const nodeY = nodeInfo.nodeY
+    const nodeEdge1 = nodeInfo.nodeEdge1
+    const nodeEdge2 = nodeInfo.nodeEdge2
+    const nodeEdgeType = nodeInfo.nodeEdgeType
+    if (this.state.selectEdge) {
+      ctx.lineWidth = "2px"
+      ctx.beginPath()
+      ctx.moveTo(this.state.mouse_x, this.state.mouse_y)
+      switch (this.state.selectEdgeStore[1]) {
+        case 0:
+          ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y + 35) * ratio)
+          break
+        case 1:
+          ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x - 20) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y - 35) * ratio)
+          break
+        case 2:
+          ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x + 20) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y - 35) * ratio)
+          break
+        case 3:
+          ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y - 35) * ratio)
+          break
+      }
+      ctx.closePath()
+      ctx.stroke()
+    }
+    for (var i in nodeEdge1) {
+      ctx.lineWidth = "2px"
+      ctx.beginPath()
+      ctx.moveTo((nodeX[nodeEdge1[i]] - this.state.origin_x) * ratio, (nodeY[nodeEdge1[i]] - this.state.origin_y + 35) * ratio)
+      switch (nodeEdgeType[i]) {
+        case 'l':
+          ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x - 20) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
+          break
+        case 'r':
+          ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x + 20) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
+          break
+        case 'c':
+          ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
+          break
+      }
+      ctx.closePath()
+      ctx.stroke()
+    } 
     for (var i in nodeType) {
       switch (nodeType[i]) {
         case 'A':
@@ -321,15 +363,20 @@ export default class Canvas extends Component {
     if (this.state.isDragging) {
       switch (this.props.dfgMode) {
         case 2:
-          var origin_x = (this.state.mouse_x - x) / ratio + this.state.origin_x
-          var origin_y = (this.state.mouse_y - y) / ratio + this.state.origin_y
-          this.setState({origin_x: origin_x, origin_y: origin_y})
+          if (Number(this.state.selectNode[0]) !== -1) {
+            var moveX = x / ratio + this.state.origin_x
+            var moveY = y / ratio + this.state.origin_y
+            this.props.moveNodeHandler(this.props.selectTabId, Number(this.state.selectNode[0]), moveX, moveY)
+          } else {
+            var origin_x = (this.state.mouse_x - x) / ratio + this.state.origin_x
+            var origin_y = (this.state.mouse_y - y) / ratio + this.state.origin_y
+            this.setState({origin_x: origin_x, origin_y: origin_y})
+          }
       }
     } else {
       const nodeInfo = this.props.nodeInfo[this.props.selectTabId]
       const selectnode = selectNode(x / ratio + this.state.origin_x, y / ratio + this.state.origin_y, nodeInfo)
       this.setState({selectNode: selectnode})
-      console.log(selectnode)
     }
 
     this.setState({mouse_x: x, mouse_y: y})
@@ -406,7 +453,7 @@ export default class Canvas extends Component {
     var nodeType
     switch (this.props.dfgMode) {
       case 1:
-        if (this.state.selectNode[0] !== -1) {
+        if (this.state.selectNode[0] !== -1 && this.state.selectNode[1] === -1) {
           this.props.removeNodeHandler(this.props.selectTabId, this.state.selectNode)
         }
         break
@@ -427,6 +474,46 @@ export default class Canvas extends Component {
         break
       case 8:
         nodeType = 'O'
+        break
+      case 9:
+        if (this.state.selectNode[0] !== -1 && this.state.selectNode[1] !== -1) {
+          if (!this.state.selectEdge) {
+            this.setState({selectEdge: true, selectEdgeStore: this.state.selectNode})
+          } else {
+            if (this.state.selectEdgeStore[1] === 0 && this.state.selectNode[1] > 0) {
+              var edgeType
+              switch (this.state.selectNode[1]) {
+                case 1:
+                  edgeType = 'l'
+                  break
+                case 2:
+                  edgeType = 'r'
+                  break
+                case 3:
+                  edgeType = 'c'
+                  break
+              }
+              this.props.drawEdgeHandler(this.props.selectTabId, this.state.selectEdgeStore[0], this.state.selectNode[0], edgeType)
+            }
+            if (this.state.selectEdgeStore[1] > 0 && this.state.selectNode[1] === 0) {
+              var edgeType
+              switch (this.state.selectEdgeStore[1]) {
+                case 1:
+                  edgeType = 'l'
+                  break
+                case 2:
+                  edgeType = 'r'
+                  break
+                case 3:
+                  edgeType = 'c'
+                  break
+              }
+              this.props.drawEdgeHandler(this.props.selectTabId, this.state.selectNode[0], this.state.selectEdgeStore[0], edgeType)  
+            }
+            
+            this.setState({selectEdge: false})
+          }
+        }
         break
     }
     if (this.props.dfgMode >= 3 && this.props.dfgMode <= 8) {

@@ -14,11 +14,29 @@ const Actions = {
             nodeY: nodeY
         }
     },
+    moveNode: (tabId, nodeId, moveX, moveY) => {
+        return {
+            type: 'MOVE_NODE',
+            tabId: tabId,
+            nodeId: nodeId,
+            moveX: moveX,
+            moveY: moveY
+        }
+    },
     removeNode: (tabId, selectNode) => {
         return {
             type: 'REMOVE_NODE',
             tabId: tabId,
             nodeId: selectNode
+        }
+    },
+    drawEdge: (tabId, edge1, edge2, edgeType) => {
+        return {
+            type: 'DRAW_EDGE',
+            tabId: tabId,
+            nodeEdge1: edge1,
+            nodeEdge2: edge2,
+            nodeEdgeType: edgeType
         }
     }
 }

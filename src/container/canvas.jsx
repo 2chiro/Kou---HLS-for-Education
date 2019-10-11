@@ -13,9 +13,15 @@ const mapDispatchToProps = dispatch => {
         putNodeHandler: (tabId, nodeType, nodeX, nodeY) => {
             dispatch(Actions.putNode(tabId, nodeType, nodeX, nodeY))
         },
+        moveNodeHandler: (tabId, nodeId, moveX, moveY) => {
+            dispatch(Actions.moveNode(tabId, nodeId, moveX, moveY))
+        },
         removeNodeHandler: (tabId, selectNode) => {
             dispatch(Actions.removeNode(tabId, selectNode))
-        }
+        },
+        drawEdgeHandler: (tabId, edge1, edge2, edgeType) => {
+            dispatch(Actions.drawEdge(tabId, edge1, edge2, edgeType))
+        },
     }
 }
 

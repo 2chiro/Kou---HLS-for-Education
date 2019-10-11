@@ -8,6 +8,13 @@
   height: 100%;
 }
 
+p, img, ul, ol {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 .left {
   flex-basis: 200px;
   display: flex;
