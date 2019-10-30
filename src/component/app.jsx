@@ -2,6 +2,7 @@ import React, {Component} from 'react'
 
 import Tools from '../container/tools'
 import Canvas from '../container/canvas'
+import Navigator from '../container/navigator'
 
 import newIcon from '../img/new.png'
 import saveIcon from '../img/save.png'
@@ -35,22 +36,6 @@ class Explorer extends Component {
           <div><img src={openIcon} className='explorer-icon' /></div>
         </div>
         <div className="exp-title"><p>エクスプローラー</p></div>
-      </div>
-    )
-  }
-}
-
-class Navigator extends Component {
-  render () {
-    return (
-      <div className="navigator">
-        <ul className="breadcrumb">
-          <li>動作記述</li>
-          <li>DFG生成</li>
-          <li>スケジューリング</li>
-          <li>バインディング</li>
-          <li>RTL回路生成</li>
-        </ul>
       </div>
     )
   }

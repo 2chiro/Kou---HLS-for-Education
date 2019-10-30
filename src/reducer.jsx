@@ -9,6 +9,8 @@ const initialState = {
 
 export default function reducer (state = initialState, action) {
     switch (action.type) {
+        case 'CHANGE_ID':
+                return {...state, id: action.value}
         case 'CHANGE_DFGMODE':
             return {...state, dfgMode: action.value}
         case 'PUT_NODE': 

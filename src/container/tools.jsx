@@ -12,6 +12,9 @@ const mapDispatchToProps = dispatch => {
     return {
         dfgmodeClickHandler: (num) => {
             dispatch(Actions.changeDfgMode(num))
+        },
+        IDClickHandler: (num) => {
+            dispatch(Actions.changeId(num))
         }
     }
 }

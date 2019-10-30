@@ -16,7 +16,7 @@ p, img, ul, ol {
 }
 
 .left {
-  flex-basis: 200px;
+  flex-basis: 230px;
   display: flex;
   flex-direction: column;
 }
@@ -28,7 +28,7 @@ p, img, ul, ol {
 }
 
 .explorer {
-  flex-basis: 200px;
+  flex-basis: 230px;
   background: #2F4F4F;
 }
 
@@ -60,7 +60,7 @@ p, img, ul, ol {
 }
 .exp-title {
   width: 100%;
-  background-color: #3a5b52;
+  background-color: #3A5B52;
 }
 .exp-title p {
   padding: 5px;
@@ -79,11 +79,16 @@ p, img, ul, ol {
 }
 .dfg-icon {
   width: 34px;
-  padding: 0 1px;
+  padding: 2px 2px;
+}
+.dfg-icon2 {
+  width: 34px;
+  background-color: #498A78;
+  border: 2px solid black;
 }
 .tools-title {
   width: 100%;
-  background-color: #3a5b52;
+  background-color: #3A5B52;
 }
 .tools-title p {
   padding: 5px;
@@ -97,8 +102,6 @@ p, img, ul, ol {
   overflow: hidden;
 }
 .breadcrumb li {
-  color: white;
-  font-size: 14px;
   text-decoration: none;
   background: #2F4F4F;
   position: relative;
@@ -112,4 +115,12 @@ p, img, ul, ol {
 }
 .breadcrumb li:last-child::after {
   content: "";
+}
+.hls-nav {
+  color: white;
+  font-size: 14px;
+}
+.hls-nav2 {
+  color: #FF69B4;
+  font-size: 14px;
 }

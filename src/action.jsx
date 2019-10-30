@@ -1,4 +1,10 @@
 const Actions = {
+    changeId: (num) => {
+        return {
+            type: 'CHANGE_ID',
+            value: num
+        }
+    },
     changeDfgMode: (num) => {
         return {
             type: 'CHANGE_DFGMODE',
