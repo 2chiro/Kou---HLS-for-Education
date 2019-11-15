@@ -15,6 +15,9 @@ const mapDispatchToProps = dispatch => {
         },
         IDClickHandler: (num) => {
             dispatch(Actions.changeId(num))
+        },
+        cycleChangeHandler: (v, tabId) => {
+            dispatch(Actions.changeCycle(v, tabId))
         }
     }
 }

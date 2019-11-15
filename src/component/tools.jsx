@@ -43,6 +43,20 @@ export default class Tools extends Component {
 
     this.props.IDClickHandler(num)
   }
+  changeCycle (e) {
+    const v = e.target.value
+    const vrp = v.replace(/[^0-9]/g, '')
+    const nv = Number(vrp) > 100 ? 100: Number(vrp)
+    this.props.cycleChangeHandler(nv, this.props.selectTabId)
+  }
+  incrementCycle () {
+    const v = this.props.nodeInfo[this.props.selectTabId].cycle + 1 > 100 ? 100 : this.props.nodeInfo[this.props.selectTabId].cycle + 1
+    this.props.cycleChangeHandler(v, this.props.selectTabId)
+  }
+  decrementCycle () {
+    const v = this.props.nodeInfo[this.props.selectTabId].cycle - 1 < 0 ? 0 : this.props.nodeInfo[this.props.selectTabId].cycle - 1
+    this.props.cycleChangeHandler(v, this.props.selectTabId)
+  }
   render () {
     let tools
     const cursor = classNames({'dfg-icon2': this.props.dfgMode === 0}, {'dfg-icon': this.props.dfgMode !== 0})
@@ -82,6 +96,20 @@ export default class Tools extends Component {
           <div className="tools-menu2">
             <div onClick={() => this.props.dfgmodeClickHandler(0)}><img src={cursorIcon} className={cursor} /></div>
             <div onClick={() => this.props.dfgmodeClickHandler(2)}><img src={moveIcon} className={move} /></div>
+          </div>
+          <div className="tools-menu2">
+            <label>サイクル数<br />
+              <input type='text' placeholder='サイクル数を入力'
+                className="txtbox"
+                value={this.props.nodeInfo[this.props.selectTabId].cycle}
+                onChange={e => this.changeCycle(e)} />
+              <input type='button' value='▲'
+                className="btn"
+                onClick={() => this.incrementCycle()} />
+              <input type='button' value='▼'
+                className="btn"
+                onClick={() => this.decrementCycle()}/>
+            </label>
           </div>
           <div className="tools-menu2">
             <button onClick={() => this.changeID(1)}>前へ</button>

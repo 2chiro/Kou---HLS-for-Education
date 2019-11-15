@@ -77,6 +77,21 @@ p, img, ul, ol {
   display: flex;
   flex-direction: row;
 }
+.tools-menu2 label {
+  font-size: 18px;
+  color: white;
+  margin: 3px;
+}
+.tools-menu2 label .txtbox {
+  margin: 0 0 0 10px;
+  width: 100px;
+}
+.tools-menu2 label .btn {
+  background-color: #2F4F4F;
+  border: none;
+  color: white;
+  font-size: 16px;
+}
 .dfg-icon {
   width: 34px;
   padding: 2px 2px;

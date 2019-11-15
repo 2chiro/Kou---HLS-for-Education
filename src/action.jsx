@@ -44,6 +44,13 @@ const Actions = {
             nodeEdge2: edge2,
             nodeEdgeType: edgeType
         }
+    },
+    changeCycle: (v, tabId) => {
+        return {
+            type: 'CHANGE_CYCLE',
+            tabId: tabId,
+            cycle: v
+        }
     }
 }
 

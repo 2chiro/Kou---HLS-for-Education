@@ -40,6 +40,27 @@ export default class Canvas extends Component {
     const nodeEdge1 = nodeInfo.nodeEdge1
     const nodeEdge2 = nodeInfo.nodeEdge2
     const nodeEdgeType = nodeInfo.nodeEdgeType
+    const cycle = nodeInfo.cycle
+
+    // サイクル線描画
+    if (this.props.id > 1) {
+      var y;
+      for (var i in nodeY) {
+        y = i == 0 ? nodeY[0] : y
+        y = i > 0 && y > nodeY[i] ? nodeY[i] : y
+      }
+      for (var i = 0; i < cycle; i++) {
+        ctx.strokeStyle = "rgb(47, 79, 79)"
+        ctx.lineWidth = "1px"
+        ctx.beginPath()
+        ctx.moveTo(0, (y + 60 + (120 * i) - this.state.origin_y) * ratio)
+        ctx.lineTo(this.canvas.width, (y + 60 + (120 * i) - this.state.origin_y) * ratio)
+        ctx.closePath()
+        ctx.stroke()
+      }
+    }
+
+    // ポート選択描画
     if (this.state.selectEdge) {
       ctx.lineWidth = "2px"
       ctx.beginPath()
@@ -61,6 +82,8 @@ export default class Canvas extends Component {
       ctx.closePath()
       ctx.stroke()
     }
+
+    // ポート接続線描画
     for (var i in nodeEdge1) {
       ctx.lineWidth = "2px"
       ctx.beginPath()
@@ -78,7 +101,9 @@ export default class Canvas extends Component {
       }
       ctx.closePath()
       ctx.stroke()
-    } 
+    }
+
+    // ノード描画
     for (var i in nodeType) {
       switch (nodeType[i]) {
         case 'A':
@@ -101,6 +126,7 @@ export default class Canvas extends Component {
           break
       }
     }
+    // マウスカーソル付属描画
     if (this.state.mouseover) {
       switch (this.props.id) {
         case 1:

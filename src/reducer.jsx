@@ -3,14 +3,19 @@ const initialState = {
     dfgMode: 0,
     selectTabId: 0,
     nodeInfo: [
-        {nodeName: 'noname', nodeType: [], nodeX: [], nodeY: [], nodeEdge1: [], nodeEdge2: [], nodeEdgeType: []}
+        {
+            nodeName: 'noname',
+            nodeType: [], nodeX: [], nodeY: [],
+            nodeEdge1: [], nodeEdge2: [], nodeEdgeType: [],
+            cycle: 0
+        }
     ]
 }
 
 export default function reducer (state = initialState, action) {
     switch (action.type) {
         case 'CHANGE_ID':
-                return {...state, id: action.value}
+            return {...state, id: action.value, dfgMode: 0}
         case 'CHANGE_DFGMODE':
             return {...state, dfgMode: action.value}
         case 'PUT_NODE': 
@@ -88,6 +93,13 @@ export default function reducer (state = initialState, action) {
             node.nodeEdge1 = nodeEdge1
             node.nodeEdge2 = nodeEdge2
             node.nodeEdgeType = nodeEdgeType
+            return {
+                ...state,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[action.tabId] ? node : el)
+            }
+        case 'CHANGE_CYCLE':
+            var node = state.nodeInfo[action.tabId]
+            node.cycle = action.cycle
             return {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[action.tabId] ? node : el)
