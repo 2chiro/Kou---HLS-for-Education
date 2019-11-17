@@ -3,3 +3,6 @@ out/index.js
 out/index.js.map
 out/vendor.js
 out/vendor.js.map
+hlscad.asar
+hlscad-darwin-x64
+hlscad-win32-x64

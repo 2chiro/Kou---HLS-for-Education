@@ -41,23 +41,23 @@ export default class Canvas extends Component {
     const nodeEdge2 = nodeInfo.nodeEdge2
     const nodeEdgeType = nodeInfo.nodeEdgeType
     const cycle = nodeInfo.cycle
+    const nodeMinY = nodeInfo.nodeMinY
 
     // サイクル線描画
-    if (this.props.id > 1) {
-      var y;
-      for (var i in nodeY) {
-        y = i == 0 ? nodeY[0] : y
-        y = i > 0 && y > nodeY[i] ? nodeY[i] : y
-      }
-      for (var i = 0; i < cycle; i++) {
-        ctx.strokeStyle = "rgb(47, 79, 79)"
-        ctx.lineWidth = "1px"
-        ctx.beginPath()
-        ctx.moveTo(0, (y + 60 + (120 * i) - this.state.origin_y) * ratio)
-        ctx.lineTo(this.canvas.width, (y + 60 + (120 * i) - this.state.origin_y) * ratio)
-        ctx.closePath()
-        ctx.stroke()
-      }
+    switch (this.props.id) {
+      case 2:
+        for (var i = 0; i < cycle; i++) {
+          ctx.strokeStyle = "rgb(47, 79, 79)"
+          ctx.lineWidth = "1px"
+          ctx.beginPath()
+          ctx.moveTo(0, (nodeMinY + 60 + (120 * i) - this.state.origin_y) * ratio)
+          ctx.lineTo(this.canvas.width, (nodeMinY + 60 + (120 * i) - this.state.origin_y) * ratio)
+          ctx.closePath()
+          ctx.stroke()
+        }
+        break;
+        default:
+          break;
     }
 
     // ポート選択描画

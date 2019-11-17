@@ -20,25 +20,54 @@ export default class Tools extends Component {
   changeID (num) {
     switch (num) {
       case 2:
-          try {
-            const node = this.props.nodeInfo[this.props.selectTabId]
-            const __dirname = path.resolve()
-            const dfgPath = path.join(__dirname, 'noname/dfg.dat')
-            const dfgFile = fs.createWriteStream(dfgPath, 'utf8')
-            dfgFile.write('--vertex' + '\n')
-            for (var i in node.nodeType) {
-              dfgFile.write(i + '\t' + node.nodeType[i] + '\t' + node.nodeX[i] + '\t' + node.nodeY[i] + '\n')
-            }
-            dfgFile.write('--edge' + '\n')
-            for (var i in node.nodeEdgeType) {
-              dfgFile.write(i + '\t' + node.nodeEdge1[i] + '\t' + node.nodeEdge2[i] + '\t' + node.nodeEdgeType[i] + '\n')
-            }
-            dfgFile.write('--exclusive block' + '\n')
-            dfgFile.end()
-        
-          } catch (err) {
-            console.log(err)
+        try {
+          const node = this.props.nodeInfo[this.props.selectTabId]
+          const __dirname = path.resolve()
+          const dfgPath = path.join(__dirname, 'noname/dfg.dat')
+          const dfgFile = fs.createWriteStream(dfgPath, 'utf8')
+          dfgFile.write('--vertex' + '\n')
+          for (var i in node.nodeType) {
+            dfgFile.write(i + '\t' + node.nodeType[i] + '\t' + node.nodeX[i] + '\t' + node.nodeY[i] + '\n')
           }
+          dfgFile.write('--edge' + '\n')
+          for (var i in node.nodeEdgeType) {
+            dfgFile.write(i + '\t' + node.nodeEdge1[i] + '\t' + node.nodeEdge2[i] + '\t' + node.nodeEdgeType[i] + '\n')
+          }
+          dfgFile.write('--exclusive block' + '\n')
+          dfgFile.end()
+
+        } catch (err) {
+          console.log(err)
+        }
+        break
+      case 3:
+        this.props.SdfgArrangeHandler(this.props.selectTabId)
+
+        try {
+          const node = this.props.nodeInfo[this.props.selectTabId]
+          const __dirname = path.resolve()
+          const sdfgPath = path.join(__dirname, 'noname/sdfg.dat')
+          const sdfgFile = fs.createWriteStream(sdfgPath, 'utf8')
+          sdfgFile.write('add.' + '\t' + node.add + '\n')
+          sdfgFile.write('sub.' + '\t' + node.sub + '\n')
+          sdfgFile.write('mult.' + '\t' + node.mult + '\n')
+          sdfgFile.write('div.' + '\t' + node.div + '\n')
+          sdfgFile.write('--vertex' + '\n')
+          for (var i in node.nodeType) {
+            sdfgFile.write(i + '\t' + node.nodeType[i] + '\t' + node.nodeTime[i] + '\t' + node.nodeX[i] + '\t' + node.nodeY[i] + '\n')
+          }
+          sdfgFile.write('--edge' + '\n')
+          for (var i in node.nodeEdgeType) {
+            sdfgFile.write(i + '\t' + node.nodeEdge1[i] + '\t' + node.nodeEdge2[i] + '\t' + node.nodeEdgeType[i] + '\n')
+          }
+          sdfgFile.write('--exclusive block' + '\n')
+          sdfgFile.end()
+
+        } catch (err) {
+          console.log(err)
+        }
+        break
+      
     }
 
     this.props.IDClickHandler(num)

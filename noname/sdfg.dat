@@ -1,0 +1,14 @@
+add.	1
+sub.	0
+mult.	0
+div.	0
+--vertex
+0	I	-1	97	127
+1	I	-1	195	127
+2	A	1	146	247
+3	O	-1	132	367
+--edge
+0	0	2	l
+1	1	2	r
+2	2	3	c
+--exclusive block

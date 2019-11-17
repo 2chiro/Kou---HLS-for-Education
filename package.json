@@ -1,5 +1,5 @@
 {
-  "name": "electron_react_redux_starter",
+  "name": "hls-cad-electron",
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
@@ -12,7 +12,6 @@
   "license": "ISC",
   "dependencies": {
     "classnames": "^2.2.6",
-    "electron": "^6.0.10",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "react-redux": "^7.1.1",
@@ -24,6 +23,7 @@
     "@babel/preset-react": "^7.0.0",
     "babel-loader": "^8.0.6",
     "css-loader": "^3.2.0",
+    "electron": "^7.1.1",
     "electron-devtools-installer": "^2.2.4",
     "style-loader": "^1.0.0",
     "url-loader": "^2.1.0",

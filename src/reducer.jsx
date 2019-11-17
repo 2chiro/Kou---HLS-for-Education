@@ -5,9 +5,10 @@ const initialState = {
     nodeInfo: [
         {
             nodeName: 'noname',
-            nodeType: [], nodeX: [], nodeY: [],
+            nodeType: [], nodeX: [], nodeY: [], nodeTime: [],
+            add: 0, sub: 0, mult: 0, div: 0,
             nodeEdge1: [], nodeEdge2: [], nodeEdgeType: [],
-            cycle: 0
+            cycle: 0, nodeMinY: 0
         }
     ]
 }
@@ -29,6 +30,13 @@ export default function reducer (state = initialState, action) {
             node.nodeType = nodeType
             node.nodeX = nodeX
             node.nodeY = nodeY
+
+            var y;
+            for (var i in nodeY) {
+              y = i == 0 ? nodeY[0] : y
+              y = i > 0 && y > nodeY[i] ? nodeY[i] : y
+            }
+            node.nodeMinY = y
             return {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[action.tabId] ? node : el)
@@ -41,6 +49,13 @@ export default function reducer (state = initialState, action) {
             nodeY[action.nodeId] = action.moveY
             node.nodeX = nodeX
             node.nodeY = nodeY
+
+            var y;
+            for (var i in nodeY) {
+              y = i == 0 ? nodeY[0] : y
+              y = i > 0 && y > nodeY[i] ? nodeY[i] : y
+            }
+            node.nodeMinY = y
             return {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[action.tabId] ? node : el)
@@ -100,6 +115,53 @@ export default function reducer (state = initialState, action) {
         case 'CHANGE_CYCLE':
             var node = state.nodeInfo[action.tabId]
             node.cycle = action.cycle
+            return {
+                ...state,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[action.tabId] ? node : el)
+            }
+        case 'ARRANGE_COORDINATES':
+            var node = state.nodeInfo[action.tabId]
+            var nodeY = node.nodeY
+            var nodeTime = node.nodeTime
+            var nodeType = node.nodeType
+            for (var i in nodeY) {
+                for (var j = 0; j <= node.cycle; j++) {
+                    if (j == node.cycle) {
+                        nodeY[i] = node.nodeMinY + (j * 120)
+                        nodeTime[i] = nodeType[i] === 'I' || nodeType[i] === 'O' ? -1 : j
+                    }
+                    if (node.nodeMinY + 60 + (j * 120) > nodeY[i]) {
+                        nodeY[i] = node.nodeMinY + (j * 120)
+                        nodeTime[i] = nodeType[i] === 'I' || nodeType[i] === 'O' ? -1 : j
+                        break
+                    }
+                }
+            }
+            node.nodeY = nodeY
+            var add = 0, sub = 0, mult = 0, div = 0
+            for (var j = 0; j <= node.cycle; j++) {
+                var a = 0, s = 0, m = 0, d = 0
+                for (var i in nodeType) {
+                    switch (nodeType[i]) {
+                        case 'A': a++
+                        break
+                        case 'S': s++
+                        break
+                        case 'M': m++
+                        break
+                        case 'D': d++
+                        break
+                    }
+                }
+                add = a > add ? a : add
+                sub = s > sub ? s : sub
+                mult = m > mult ? m : mult
+                div = d > div ? d : div
+            }
+            node.add = add
+            node.sub = sub
+            node.mult = mult
+            node.div = div
             return {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[action.tabId] ? node : el)

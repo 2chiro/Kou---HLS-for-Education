@@ -18,6 +18,9 @@ const mapDispatchToProps = dispatch => {
         },
         cycleChangeHandler: (v, tabId) => {
             dispatch(Actions.changeCycle(v, tabId))
+        },
+        SdfgArrangeHandler: (tabId) => {
+            dispatch(Actions.arrangeCoordinates(tabId))
         }
     }
 }

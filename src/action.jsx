@@ -51,6 +51,12 @@ const Actions = {
             tabId: tabId,
             cycle: v
         }
+    },
+    arrangeCoordinates: (tabId) => {
+        return {
+            type: 'ARRANGE_COORDINATES',
+            tabId: tabId
+        }
     }
 }
 
