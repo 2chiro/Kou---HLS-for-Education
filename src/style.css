@@ -78,12 +78,19 @@ p, img, ul, ol {
   flex-direction: row;
 }
 .tools-menu2 label {
-  font-size: 18px;
   color: white;
   margin: 3px;
 }
+.tools-menu2 .manual-auto {
+  font-size: 16px;
+  margin: 10px 0 0 0;
+}
+.tools-menu2 .ma {
+  font-size: 14px;
+  margin: 0 0 0 25px;
+}
 .tools-menu2 label .txtbox {
-  margin: 0 0 0 10px;
+  margin: 0 0 0 30px;
   width: 100px;
 }
 .tools-menu2 label .btn {

@@ -2,6 +2,7 @@ import React, {Component} from 'react'
 import path from 'path'
 import fs from 'fs'
 import classNames from 'classnames'
+import request from 'superagent'
 
 import cursorIcon from '../img/icon-cursor.png'
 import eraserIcon from '../img/icon-eraser.png'
@@ -17,6 +18,24 @@ import inputIcon from '../img/icon-input.png'
 import outputIcon from '../img/icon-output.png'
 
 export default class Tools extends Component {
+  constructor (props) {
+    super (props)
+    this.state = {
+      isManualSche: true, isManualBind: true,
+      add: 1, sub: 1, mult: 1, div: 1
+    }
+  }
+  componentDidMount () {
+    const __dirname = path.resolve()
+    var algPath = path.join(__dirname, 'algorithms/algorithms.json')
+    request.get(algPath)
+      .end(algGet)
+    
+    function algGet (err, res) {
+      if (err) return
+      console.log(res.body)
+    }
+  }
   changeID (num) {
     switch (num) {
       case 2:
@@ -127,18 +146,25 @@ export default class Tools extends Component {
             <div onClick={() => this.props.dfgmodeClickHandler(2)}><img src={moveIcon} className={move} /></div>
           </div>
           <div className="tools-menu2">
-            <label>サイクル数<br />
-              <input type='text' placeholder='サイクル数を入力'
-                className="txtbox"
-                value={this.props.nodeInfo[this.props.selectTabId].cycle}
-                onChange={e => this.changeCycle(e)} />
-              <input type='button' value='▲'
-                className="btn"
-                onClick={() => this.incrementCycle()} />
-              <input type='button' value='▼'
-                className="btn"
-                onClick={() => this.decrementCycle()}/>
-            </label>
+            <form>
+              <label className='manual-auto'>
+                <input type='radio' name='manual-auto'
+                  checked='checked' />
+                マニュアル</label><br />
+              <label className='ma'>サイクル数<br />
+                <input type='text' placeholder='サイクル数を入力'
+                  className="txtbox"
+                  value={this.props.nodeInfo[this.props.selectTabId].cycle}
+                  onChange={e => this.changeCycle(e)} />
+                <input type='button' value='▲'
+                  className="btn"
+                  onClick={() => this.incrementCycle()} />
+                <input type='button' value='▼'
+                  className="btn"
+                  onClick={() => this.decrementCycle()} />
+              </label><br />
+              <label className="manual-auto"><input type='radio' name='manual-auto' />自動</label><br/>
+            </form>
           </div>
           <div className="tools-menu2">
             <button onClick={() => this.changeID(1)}>前へ</button>

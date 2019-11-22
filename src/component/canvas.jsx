@@ -46,6 +46,7 @@ export default class Canvas extends Component {
     // サイクル線描画
     switch (this.props.id) {
       case 2:
+      case 3:
         for (var i = 0; i < cycle; i++) {
           ctx.strokeStyle = "rgb(47, 79, 79)"
           ctx.lineWidth = "1px"
