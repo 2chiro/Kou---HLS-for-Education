@@ -10,18 +10,24 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        putNodeHandler: (tabId, nodeType, nodeX, nodeY) => {
-            dispatch(Actions.putNode(tabId, nodeType, nodeX, nodeY))
+        putNodeHandler: (nodeType, nodeX, nodeY) => {
+            dispatch(Actions.putNode(nodeType, nodeX, nodeY))
         },
-        moveNodeHandler: (tabId, nodeId, moveX, moveY) => {
-            dispatch(Actions.moveNode(tabId, nodeId, moveX, moveY))
+        moveNodeHandler: (nodeId, moveX, moveY) => {
+            dispatch(Actions.moveNode(nodeId, moveX, moveY))
         },
-        removeNodeHandler: (tabId, selectNode) => {
-            dispatch(Actions.removeNode(tabId, selectNode))
+        removeNodeHandler: (selectNode) => {
+            dispatch(Actions.removeNode(selectNode))
         },
-        drawEdgeHandler: (tabId, edge1, edge2, edgeType) => {
-            dispatch(Actions.drawEdge(tabId, edge1, edge2, edgeType))
+        drawEdgeHandler: (edge1, edge2, edgeType) => {
+            dispatch(Actions.drawEdge(edge1, edge2, edgeType))
         },
+        moveLifetimeHandler: (edgeId, moveX) => {
+            dispatch(Actions.moveLifetime(edgeId, moveX))
+        },
+        paintNodeHandler: (nodeId) => {
+            dispatch(Actions.paintNode(nodeId))
+        }
     }
 }
 

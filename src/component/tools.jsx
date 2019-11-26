@@ -1,14 +1,17 @@
 import React, {Component} from 'react'
 import path from 'path'
 import fs from 'fs'
+import readLine from 'readline'
 import classNames from 'classnames'
 import request from 'superagent'
+import {ipcRenderer} from 'electron'
 
 import cursorIcon from '../img/icon-cursor.png'
 import eraserIcon from '../img/icon-eraser.png'
 import moveIcon from '../img/icon-move.png'
 
 import connectIcon from '../img/icon-connect.png'
+import paintIcon from '../img/icon-paint.png'
 
 import addIcon from '../img/icon-adder.png'
 import subIcon from '../img/icon-sub.png'
@@ -22,19 +25,20 @@ export default class Tools extends Component {
     super (props)
     this.state = {
       isManualSche: true, isManualBind: true,
-      add: 1, sub: 1, mult: 1, div: 1
+      scheList: [], bindList: [],
+      algoScheValue: '', algoBindValue: ''
     }
   }
   componentDidMount () {
     const __dirname = path.resolve()
     var algPath = path.join(__dirname, 'algorithms/algorithms.json')
     request.get(algPath)
-      .end(algGet)
-    
-    function algGet (err, res) {
-      if (err) return
-      console.log(res.body)
-    }
+      .end( (err, res) => {
+        if (err) return
+        console.log(res.body)
+        this.setState({scheList: res.body.scheduling, bindList: res.body.binding,
+          algoScheValue: res.body.scheduling[0].name})
+      })
   }
   changeID (num) {
     switch (num) {
@@ -60,7 +64,7 @@ export default class Tools extends Component {
         }
         break
       case 3:
-        this.props.SdfgArrangeHandler(this.props.selectTabId)
+        this.props.sdfgArrangeHandler()
 
         try {
           const node = this.props.nodeInfo[this.props.selectTabId]
@@ -82,6 +86,8 @@ export default class Tools extends Component {
           sdfgFile.write('--exclusive block' + '\n')
           sdfgFile.end()
 
+          this.props.lifetimeAnalysisHandler()
+
         } catch (err) {
           console.log(err)
         }
@@ -91,19 +97,163 @@ export default class Tools extends Component {
 
     this.props.IDClickHandler(num)
   }
+  //マニュアルー自動切り替え
+  changeMASChe (e) {
+    const v = Number(e.target.value)
+    if (v === 0) {
+      this.setState({isManualSche: true})
+    } else {
+      this.setState({isManualSche: false})
+    }
+  }
+  changeMABind (e) {
+    const v = Number(e.target.value)
+    if (v === 0) {
+      this.setState({isManualBind: true})
+    } else {
+      this.setState({isManualBind: false})
+    }
+  }
+  //サイクル数変化
   changeCycle (e) {
-    const v = e.target.value
-    const vrp = v.replace(/[^0-9]/g, '')
-    const nv = Number(vrp) > 100 ? 100: Number(vrp)
-    this.props.cycleChangeHandler(nv, this.props.selectTabId)
+    if (this.state.isManualSche) {
+      const v = e.target.value
+      const vrp = v.replace(/[^0-9]/g, '')
+      const nv = Number(vrp) > 100 ? 100: Number(vrp)
+      this.props.cycleChangeHandler(nv)
+    }
   }
   incrementCycle () {
-    const v = this.props.nodeInfo[this.props.selectTabId].cycle + 1 > 100 ? 100 : this.props.nodeInfo[this.props.selectTabId].cycle + 1
-    this.props.cycleChangeHandler(v, this.props.selectTabId)
+    if (this.state.isManualSche) {
+      const v = this.props.nodeInfo[this.props.selectTabId].cycle + 1 > 100 ? 100 : this.props.nodeInfo[this.props.selectTabId].cycle + 1
+      this.props.cycleChangeHandler(v)
+    }
   }
   decrementCycle () {
-    const v = this.props.nodeInfo[this.props.selectTabId].cycle - 1 < 0 ? 0 : this.props.nodeInfo[this.props.selectTabId].cycle - 1
-    this.props.cycleChangeHandler(v, this.props.selectTabId)
+    if (this.state.isManualSche) {
+      const v = this.props.nodeInfo[this.props.selectTabId].cycle - 1 < 0 ? 0 : this.props.nodeInfo[this.props.selectTabId].cycle - 1
+      this.props.cycleChangeHandler(v)
+    }
+  }
+  //レジスタ数変化
+  changeReg (e) {
+    if (this.state.isManualBind) {
+      const v = e.target.value
+      const vrp = v.replace(/[^0-9]/g, '')
+      const nv = Number(vrp) > 100 ? 100: Number(vrp)
+      this.props.registerChangeHandler(nv)
+    }
+  }
+  incrementReg () {
+    if (this.state.isManualBind) {
+      const v = this.props.nodeInfo[this.props.selectTabId].reg + 1 > 100 ? 100 : this.props.nodeInfo[this.props.selectTabId].reg + 1
+      this.props.registerChangeHandler(v)
+    }
+  }
+  decrementReg () {
+    if (this.state.isManualBind) {
+      const v = this.props.nodeInfo[this.props.selectTabId].reg - 1 < 0 ? 0 : this.props.nodeInfo[this.props.selectTabId].reg - 1
+      this.props.registerChangeHandler(v)
+    }
+  }
+  //演算器数変化
+  changeOP (e, i) {
+    if (!this.state.isManualSche) {
+      const v = e.target.value
+      const vrp = v.replace(/[^0-9]/g, '')
+      const nv = Number(vrp) > 100 ? 100: Number(vrp)
+      this.props.opChangeHandler(i, nv)
+    }
+  }
+  incrementOP (i) {
+    if (!this.state.isManualSche) {
+      var op
+      switch (i) {
+        case 1:
+          op = this.props.nodeInfo[this.props.selectTabId].add
+          break
+        case 2:
+          op = this.props.nodeInfo[this.props.selectTabId].sub
+          break
+        case 3:
+          op = this.props.nodeInfo[this.props.selectTabId].mult
+          break
+        case 4:
+          op = this.props.nodeInfo[this.props.selectTabId].div
+          break
+      }
+      const v = op + 1 > 100 ? 100 : op + 1
+      this.props.opChangeHandler(i, v)
+    }
+  }
+  decrementOP (i) {
+    if (!this.state.isManualSche) {
+      var op
+      switch (i) {
+        case 1:
+          op = this.props.nodeInfo[this.props.selectTabId].add
+          break
+        case 2:
+          op = this.props.nodeInfo[this.props.selectTabId].sub
+          break
+        case 3:
+          op = this.props.nodeInfo[this.props.selectTabId].mult
+          break
+        case 4:
+          op = this.props.nodeInfo[this.props.selectTabId].div
+          break
+      }
+      const v = op - 1 < 1 ? 1 : op - 1
+      this.props.opChangeHandler(i, v)
+    }
+  }
+  changeAlgoSche (e) {
+    const v = e.target.value
+    this.setState({algoScheValue: v})
+  }
+  startAlgoSche () {
+    if (!this.state.isManualSche) {
+      const node = this.props.nodeInfo[this.props.selectTabId]
+      const target = this.state.scheList.find((v) => v.name === this.state.algoScheValue)
+      const add = node.add
+      const sub = node.sub
+      const mult = node.mult
+      const div = node.div
+      ipcRenderer.send('scheduling', target, add, sub, mult, div)
+      ipcRenderer.on('end_scheduling', (event, result) => {
+        console.log(result)
+        if (result === 'Complete') {
+          const __dirname = path.resolve()
+          const sdfgPath = path.join(__dirname, 'noname/sdfg.dat')
+          const sdfgFile = fs.createReadStream(sdfgPath, 'utf8')
+          const sdfgLine = readLine.createInterface(sdfgFile, {})
+          var vertex = false
+          var separator = /\s+/
+          var nodeTime = []
+          var cycle = 0
+          sdfgLine.on('line', data => {
+            var str = data.split(separator)
+            if (str[0] === '--vertex') {
+              vertex = true
+            } else if (str[0] === '--edge') {
+              vertex = false
+            } else if (str[0] === '--exclusive') {
+              cycle = cycle + 1
+              this.props.nodeTimeSetHandler(nodeTime, cycle)
+            } else {
+              if (vertex) {
+                nodeTime.push(Number(str[2]))
+                cycle = Number(str[2]) > cycle ? Number(str[2]) : cycle
+              }
+            }
+          })
+        }
+      })
+    }
+  }
+  changeALU (e) {
+    const v = e.target.value
+    this.props.changeALUHandler(v)
   }
   render () {
     let tools
@@ -117,6 +267,19 @@ export default class Tools extends Component {
     const div = classNames({'dfg-icon2': this.props.dfgMode === 6}, {'dfg-icon': this.props.dfgMode !== 6})
     const input = classNames({'dfg-icon2': this.props.dfgMode === 7}, {'dfg-icon': this.props.dfgMode !== 7})
     const output = classNames({'dfg-icon2': this.props.dfgMode === 8}, {'dfg-icon': this.props.dfgMode !== 8})
+    const paint = classNames({'dfg-icon2': this.props.dfgMode === 11}, {'dfg-icon': this.props.dfgMode !== 11})
+
+    const scheList = this.state.scheList.map(i => {
+      return (
+      <option value={i.name} title={i.comment}>{i.name}</option>
+      )
+    })
+
+    const ALUList = this.props.nodeInfo[this.props.selectTabId].useALU.map(i => {
+      return (
+        <option value={i.name}>{i.name}</option>
+      )
+    })
     switch (this.props.id) {
       case 1:
         tools = <div className="tools-menu">
@@ -140,7 +303,7 @@ export default class Tools extends Component {
         </div>
         break;
       case 2:
-          tools = <div className="tools-menu">
+        tools = <div className="tools-menu">
           <div className="tools-menu2">
             <div onClick={() => this.props.dfgmodeClickHandler(0)}><img src={cursorIcon} className={cursor} /></div>
             <div onClick={() => this.props.dfgmodeClickHandler(2)}><img src={moveIcon} className={move} /></div>
@@ -149,7 +312,8 @@ export default class Tools extends Component {
             <form>
               <label className='manual-auto'>
                 <input type='radio' name='manual-auto'
-                  checked='checked' />
+                  checked={this.state.isManualSche} value='0'
+                  onChange={e => this.changeMASChe(e)} />
                 マニュアル</label><br />
               <label className='ma'>サイクル数<br />
                 <input type='text' placeholder='サイクル数を入力'
@@ -163,7 +327,65 @@ export default class Tools extends Component {
                   className="btn"
                   onClick={() => this.decrementCycle()} />
               </label><br />
-              <label className="manual-auto"><input type='radio' name='manual-auto' />自動</label><br/>
+              <label className="manual-auto">
+                <input type='radio' name='manual-auto'
+                  checked={!this.state.isManualSche} value='1'
+                  onChange={e => this.changeMASChe(e)}/>自動</label><br/>
+              <label className='ma'>アルゴリズム<br />
+                <select name="scheduling" className='txtbox'
+                  value={this.state.algoScheValue} onChange={e => this.changeAlgoSche(e)}>
+                  {scheList}
+                </select>
+                <input type='button' value='実行' onClick={() => this.startAlgoSche()} />
+              </label><br />
+              <label className='ma'>＋：
+                <input type='text' placeholder='加算器数を入力'
+                  className="op"
+                  value={this.props.nodeInfo[this.props.selectTabId].add}
+                  onChange={e => this.changeOP(e, 1)} />
+                <input type='button' value='▲'
+                  className="btn"
+                  onClick={() => this.incrementOP(1)} />
+                <input type='button' value='▼'
+                  className="btn"
+                  onClick={() => this.decrementOP(1)} />
+              </label><br />
+              <label className='ma'>－：
+                <input type='text' placeholder='減算器数を入力'
+                  className="op"
+                  value={this.props.nodeInfo[this.props.selectTabId].sub}
+                  onChange={e => this.changeOP(e, 2)} />
+                <input type='button' value='▲'
+                  className="btn"
+                  onClick={() => this.incrementOP(2)} />
+                <input type='button' value='▼'
+                  className="btn"
+                  onClick={() => this.decrementOP(2)} />
+              </label><br />
+              <label className='ma'>×：
+                <input type='text' placeholder='乗算器数を入力'
+                  className="op"
+                  value={this.props.nodeInfo[this.props.selectTabId].mult}
+                  onChange={e => this.changeOP(e, 3)} />
+                <input type='button' value='▲'
+                  className="btn"
+                  onClick={() => this.incrementOP(3)} />
+                <input type='button' value='▼'
+                  className="btn"
+                  onClick={() => this.decrementOP(3)} />
+              </label><br />
+              <label className='ma'>÷：
+                <input type='text' placeholder='除算器数を入力'
+                  className="op"
+                  value={this.props.nodeInfo[this.props.selectTabId].div}
+                  onChange={e => this.changeOP(e, 4)} />
+                <input type='button' value='▲'
+                  className="btn"
+                  onClick={() => this.incrementOP(4)} />
+                <input type='button' value='▼'
+                  className="btn"
+                  onClick={() => this.decrementOP(4)} />
+              </label><br />
             </form>
           </div>
           <div className="tools-menu2">
@@ -171,7 +393,48 @@ export default class Tools extends Component {
             <button onClick={() => this.changeID(3)}>次へ</button>
           </div>
         </div>
-
+        break
+      case 3:
+        tools = <div className="tools-menu">
+          <div className="tools-menu2">
+            <div onClick={() => this.props.dfgmodeClickHandler(0)}><img src={cursorIcon} className={cursor} /></div>
+            <div onClick={() => this.props.dfgmodeClickHandler(2)}><img src={moveIcon} className={move} /></div>
+            <div onClick={() => this.props.dfgmodeClickHandler(11)}><img src={paintIcon} className={paint} /></div>
+          </div>
+          <div className="tools-menu2">
+            <form>
+              <label className='manual-auto'>
+                <input type='radio' name='manual-auto'
+                  checked={this.state.isManualBind} value='0'
+                  onChange={e => this.changeMABind(e)} />
+                マニュアル</label><br />
+              <label className='ma'>レジスタ数<br />
+                <input type='text' placeholder='レジスタ数を入力'
+                  className="txtbox"
+                  value={this.props.nodeInfo[this.props.selectTabId].reg}
+                  onChange={e => this.changeReg(e)} />
+                <input type='button' value='▲'
+                  className="btn"
+                  onClick={() => this.incrementReg()} />
+                <input type='button' value='▼'
+                  className="btn"
+                  onClick={() => this.decrementReg()} />
+              </label><br />
+              <label className='ma'>演算器割当<br />
+                <select name="scheduling" className='txtbox'
+                  value={this.props.nodeInfo[this.props.selectTabId].ALUValue} onChange={e => this.changeALU(e)}>
+                  <option value=''>演算器を選択</option>
+                  {ALUList}
+                </select>
+              </label><br />
+            </form>
+          </div>
+          <div className="tools-menu2">
+            <button onClick={() => this.changeID(2)}>前へ</button>
+            <button onClick={() => this.changeID(4)}>次へ</button>
+          </div>
+        </div>
+        break
     }
     return (
       <div className="tools">

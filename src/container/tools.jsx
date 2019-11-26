@@ -16,11 +16,26 @@ const mapDispatchToProps = dispatch => {
         IDClickHandler: (num) => {
             dispatch(Actions.changeId(num))
         },
-        cycleChangeHandler: (v, tabId) => {
-            dispatch(Actions.changeCycle(v, tabId))
+        cycleChangeHandler: (v) => {
+            dispatch(Actions.changeCycle(v))
         },
-        SdfgArrangeHandler: (tabId) => {
-            dispatch(Actions.arrangeCoordinates(tabId))
+        opChangeHandler: (id, v) => {
+            dispatch(Actions.changeOP(id, v))
+        },
+        sdfgArrangeHandler: () => {
+            dispatch(Actions.arrangeCoordinates())
+        },
+        lifetimeAnalysisHandler: () => {
+            dispatch(Actions.analysisLifetime())
+        },
+        nodeTimeSetHandler: (nodeTime, cycle) => {
+            dispatch(Actions.timeSetNode(nodeTime, cycle))
+        },
+        registerChangeHandler: (v) => {
+            dispatch(Actions.changeRegister(v))
+        },
+        changeALUHandler: (v) => {
+            dispatch(Actions.changeALU(v))
         }
     }
 }

@@ -1,3 +1,5 @@
+import { start } from "repl"
+
 const initialState = {
     id: 1,
     dfgMode: 0,
@@ -6,9 +8,12 @@ const initialState = {
         {
             nodeName: 'noname',
             nodeType: [], nodeX: [], nodeY: [], nodeTime: [],
-            add: 0, sub: 0, mult: 0, div: 0,
+            cycle: 0, nodeMinY: 0, nodeMaxX: 0,
+            add: 1, sub: 1, mult: 1, div: 1, reg: 0,
             nodeEdge1: [], nodeEdge2: [], nodeEdgeType: [],
-            cycle: 0, nodeMinY: 0
+            startEdge: [], endEdge: [], doubleEdge: [],
+            useRegister: [], registerX: [], registerY: [],
+            useALU: [], ALUValue: ''
         }
     ]
 }
@@ -20,7 +25,7 @@ export default function reducer (state = initialState, action) {
         case 'CHANGE_DFGMODE':
             return {...state, dfgMode: action.value}
         case 'PUT_NODE': 
-            var node = state.nodeInfo[action.tabId]
+            var node = state.nodeInfo[state.selectTabId]
             var nodeType = node.nodeType
             var nodeX = node.nodeX
             var nodeY = node.nodeY
@@ -31,37 +36,44 @@ export default function reducer (state = initialState, action) {
             node.nodeX = nodeX
             node.nodeY = nodeY
 
-            var y;
-            for (var i in nodeY) {
-              y = i == 0 ? nodeY[0] : y
-              y = i > 0 && y > nodeY[i] ? nodeY[i] : y
+            var x, y;
+            for (var i in nodeX) {
+                x = i == 0 ? nodeX[0] : x
+                x = i > 0 && x < nodeX[i] ? nodeX[i] : x
+                y = i == 0 ? nodeY[0] : y
+                y = i > 0 && y > nodeY[i] ? nodeY[i] : y
             }
+            node.nodeMaxX = x
             node.nodeMinY = y
             return {
                 ...state,
-                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[action.tabId] ? node : el)
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
         case 'MOVE_NODE':
-            var node = state.nodeInfo[action.tabId]
+            var node = state.nodeInfo[state.selectTabId]
             var nodeX = node.nodeX
             var nodeY = node.nodeY
             nodeX[action.nodeId] = action.moveX
-            nodeY[action.nodeId] = action.moveY
             node.nodeX = nodeX
-            node.nodeY = nodeY
-
-            var y;
-            for (var i in nodeY) {
-              y = i == 0 ? nodeY[0] : y
-              y = i > 0 && y > nodeY[i] ? nodeY[i] : y
+            if (state.id < 3) {
+                nodeY[action.nodeId] = action.moveY
+                node.nodeY = nodeY
             }
+            var x, y;
+            for (var i in nodeX) {
+                x = i == 0 ? nodeX[0] : x
+                x = i > 0 && x < nodeX[i] ? nodeX[i] : x
+                y = i == 0 ? nodeY[0] : y
+                y = i > 0 && y > nodeY[i] ? nodeY[i] : y
+            }
+            node.nodeMaxX = x
             node.nodeMinY = y
             return {
                 ...state,
-                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[action.tabId] ? node : el)
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
         case 'REMOVE_NODE':
-            var node = state.nodeInfo[action.tabId]
+            var node = state.nodeInfo[state.selectTabId]
             var nodeType = node.nodeType
             var nodeX = node.nodeX
             var nodeY = node.nodeY
@@ -95,10 +107,10 @@ export default function reducer (state = initialState, action) {
             node.nodeEdgeType = new_nodeEdgeType
             return {
                 ...state,
-                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[action.tabId] ? node : el)
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
         case 'DRAW_EDGE':
-            var node = state.nodeInfo[action.tabId]
+            var node = state.nodeInfo[state.selectTabId]
             var nodeEdge1 = node.nodeEdge1
             var nodeEdge2 = node.nodeEdge2
             var nodeEdgeType = node.nodeEdgeType
@@ -110,17 +122,37 @@ export default function reducer (state = initialState, action) {
             node.nodeEdgeType = nodeEdgeType
             return {
                 ...state,
-                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[action.tabId] ? node : el)
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
         case 'CHANGE_CYCLE':
-            var node = state.nodeInfo[action.tabId]
+            var node = state.nodeInfo[state.selectTabId]
             node.cycle = action.cycle
             return {
                 ...state,
-                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[action.tabId] ? node : el)
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+            }
+        case 'CHANGE_OP':
+            var node = state.nodeInfo[state.selectTabId]
+            switch (action.opID) {
+                case 1:
+                    node.add = action.value
+                    break
+                case 2:
+                    node.sub = action.value
+                    break
+                case 3:
+                    node.mult = action.value
+                    break
+                case 4:
+                    node.div = action.value
+                    break
+            }
+            return {
+                ...state,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
         case 'ARRANGE_COORDINATES':
-            var node = state.nodeInfo[action.tabId]
+            var node = state.nodeInfo[state.selectTabId]
             var nodeY = node.nodeY
             var nodeTime = node.nodeTime
             var nodeType = node.nodeType
@@ -138,19 +170,22 @@ export default function reducer (state = initialState, action) {
                 }
             }
             node.nodeY = nodeY
+            node.nodeTime = nodeTime
             var add = 0, sub = 0, mult = 0, div = 0
             for (var j = 0; j <= node.cycle; j++) {
                 var a = 0, s = 0, m = 0, d = 0
                 for (var i in nodeType) {
-                    switch (nodeType[i]) {
-                        case 'A': a++
-                        break
-                        case 'S': s++
-                        break
-                        case 'M': m++
-                        break
-                        case 'D': d++
-                        break
+                    if (nodeTime[i] === j) {
+                        switch (nodeType[i]) {
+                            case 'A': a++
+                            break
+                            case 'S': s++
+                            break
+                            case 'M': m++
+                            break
+                            case 'D': d++
+                            break
+                        }
                     }
                 }
                 add = a > add ? a : add
@@ -162,9 +197,165 @@ export default function reducer (state = initialState, action) {
             node.sub = sub
             node.mult = mult
             node.div = div
+
+            var useALU = []
+            for (var i = 0; i < add; i++){
+                useALU.push({name: '加算器' + i, node: []})
+            }
+            for (var i = 0; i < sub; i++){
+                useALU.push({name: '減算器' + i, node: []})
+            }
+            for (var i = 0; i < mult; i++){
+                useALU.push({name: '乗算器' + i, node: []})
+            }
+            for (var i = 0; i < div; i++){
+                useALU.push({name: '除算器' + i, node: []})
+            }
+            node.useALU = useALU
+
             return {
                 ...state,
-                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[action.tabId] ? node : el)
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+            }
+        case 'ANALYSIS_LIFETIME':
+            var node = state.nodeInfo[state.selectTabId]
+            var nodeEdge1 = node.nodeEdge1
+            var nodeEdge2 = node.nodeEdge2
+            var nodeTime = node.nodeTime
+            var nodeType = node.nodeType
+            var doubleEdge = []
+            var startEdge = new Array(nodeEdge1)
+            var endEdge = new Array(nodeEdge2)
+            var x = 0
+            for (var i = 0; i < nodeEdge1.length; i++) {
+                if (nodeType[nodeEdge1[i]] === 'I') {
+                    nodeTime[nodeEdge1[i]] = 0
+                }
+                if (nodeType[nodeEdge2[i]] === 'O') {
+                    if (x === 0) {
+                        for (var j in nodeTime) {
+                            if (x < nodeTime[j]) {
+                                x = nodeTime[j]
+                            }
+                        }
+                        x = x + 1
+                    }
+                    nodeTime[nodeEdge2[i]] = x
+                }
+                for (var k = i + 1; k < nodeEdge1.length; k++) {
+                    if (nodeEdge1[i] === nodeEdge1[k]) {
+                        if (nodeTime[nodeEdge2[i]] < nodeTime[nodeEdge2[k]]) {
+                            doubleEdge.push(i)
+                        } else {
+                            var p = false
+                            for (var l in doubleEdge) {
+                                if (l === k) {
+                                    p = true
+                                    break
+                                }
+                            }
+                            if (!p) {
+                                doubleEdge.push(k)
+                            }
+                        }
+                    }
+                }
+                endEdge[i] = nodeTime[nodeEdge2[i]]
+                startEdge[i] = nodeTime[nodeEdge1[i]]
+            }
+            node.endEdge = endEdge
+            node.startEdge = startEdge
+            node.doubleEdge = doubleEdge
+
+            //一時的なレジスタ割当
+            var registerX = [], registerY = []
+            var reg = 0
+            for (var i in startEdge) {
+                var v = doubleEdge.indexOf(Number(i))
+                if (v === -1) {
+                    var x = node.nodeMaxX + 100 + 40 * reg
+                    var y = node.nodeMinY + 120 * startEdge[i]
+                    registerX.push(x)
+                    registerY.push(y)
+                    reg = reg + 1
+                } else {
+                    registerX.push('none')
+                    registerY.push('none')
+                }
+            }
+            node.reg = reg
+            node.registerX = registerX
+            node.registerY = registerY
+            return {
+                ...state,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+            }
+        case 'TIMESET_NODE':
+            var node = state.nodeInfo[state.selectTabId]
+            var nodeY = node.nodeY
+            node.nodeTime = action.nodeTime
+            node.cycle = action.cycle
+            for (var i in node.nodeTime) {
+                switch (node.nodeType[i]) {
+                    case 'A':
+                    case 'S':
+                    case 'M':
+                    case 'D':
+                        nodeY[i] = node.nodeMinY + (node.nodeTime[i] * 120)
+                        break
+                    case 'I':
+                        nodeY[i] = node.nodeMinY
+                        break
+                    case 'O':
+                        nodeY[i] = node.nodeMinY + (node.cycle * 120)
+                        break
+                }
+            }
+            node.nodeY = nodeY
+            return {
+                ...state,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+            }
+        case 'CHANGE_REGISTER':
+            var node = state.nodeInfo[state.selectTabId]
+            node.reg = action.reg
+            return {
+                ...state,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+            }
+        case 'MOVE_LIFETIME':
+            var node = state.nodeInfo[state.selectTabId]
+            var registerX = node.registerX
+            registerX[action.edgeId] = action.moveX
+            return {
+                ...state,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+            }
+        case 'CHANGE_ALU':
+            var node = state.nodeInfo[state.selectTabId]
+            node.ALUValue = action.value
+            return {
+                ...state,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+            }
+        case 'PAINT_NODE':
+            var node = state.nodeInfo[state.selectTabId]
+            if (node.ALUValue === '') {
+                return state
+            }
+            var useALU = node.useALU
+            for (var i in useALU) {
+                if (useALU[i].name === node.ALUValue) {
+                    if (useALU[i].node.indexOf(action.nodeId) === -1) {
+                        useALU[i].node.push(Number(action.nodeId))
+                        break
+                    }
+                }
+            }
+            node.useALU = useALU
+            return {
+                ...state,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
         default:
             return state

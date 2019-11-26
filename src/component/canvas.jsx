@@ -41,24 +41,66 @@ export default class Canvas extends Component {
     const nodeEdge2 = nodeInfo.nodeEdge2
     const nodeEdgeType = nodeInfo.nodeEdgeType
     const cycle = nodeInfo.cycle
+    const reg = nodeInfo.reg
+    const nodeMaxX = nodeInfo.nodeMaxX
     const nodeMinY = nodeInfo.nodeMinY
+    const registerX = nodeInfo.registerX
+    const registerY = nodeInfo.registerY
+    const startEdge = nodeInfo.startEdge
+    const endEdge = nodeInfo.endEdge
 
-    // サイクル線描画
-    switch (this.props.id) {
-      case 2:
-      case 3:
-        for (var i = 0; i < cycle; i++) {
-          ctx.strokeStyle = "rgb(47, 79, 79)"
-          ctx.lineWidth = "1px"
-          ctx.beginPath()
-          ctx.moveTo(0, (nodeMinY + 60 + (120 * i) - this.state.origin_y) * ratio)
-          ctx.lineTo(this.canvas.width, (nodeMinY + 60 + (120 * i) - this.state.origin_y) * ratio)
-          ctx.closePath()
-          ctx.stroke()
+    const useALU = nodeInfo.useALU
+    const ALUValue = nodeInfo.ALUValue
+    var targetALUNode = []
+
+    for (var i in useALU) {
+      if (useALU[i].name === ALUValue) {
+        targetALUNode = useALU[i].node
+        break
+      }
+    }
+
+    if (this.props.id > 1 && this.props.id < 4) {
+      // サイクル線描画
+      for (var i = 0; i < cycle; i++) {
+        ctx.strokeStyle = "rgb(47, 79, 79)"
+        ctx.lineWidth = "1px"
+        ctx.beginPath()
+        ctx.moveTo(0, (nodeMinY + 60 + (120 * i) - this.state.origin_y) * ratio)
+        ctx.lineTo(this.canvas.width, (nodeMinY + 60 + (120 * i) - this.state.origin_y) * ratio)
+        ctx.closePath()
+        ctx.stroke()
+      }
+      //ライフタイム描画
+      if (this.props.id >= 3) {
+        var fontSize = 16 * ratio
+        var font = fontSize + "px 'Times New Roman'"
+
+        for (var i = 0; i < reg; i++) {
+          if (i > 0) {
+            ctx.strokeStyle = "rgb(47, 79, 79)"
+            ctx.lineWidth = "2px"
+            ctx.beginPath()
+            ctx.setLineDash([8, 8])
+            ctx.moveTo((nodeMaxX + 90 + 40 * i - this.state.origin_x) * ratio, (nodeMinY - this.state.origin_y) * ratio)
+            ctx.lineTo((nodeMaxX + 90 + 40 * i - this.state.origin_x) * ratio, (nodeMinY + 120 * cycle - this.state.origin_y) * ratio)
+            ctx.stroke()
+            ctx.closePath()
+            ctx.setLineDash([0, 0])
+            ctx.lineDashOffset = 0
+          }
         }
-        break;
-        default:
-          break;
+        for (var i in registerX) {
+          if (registerX[i] !== 'none' && registerY[i] !== 'none') {
+            ctx.fillStyle = "rgb(255, 255, 255)"
+            ctx.strokeStyle = "rgb(0, 0, 0)"
+            ctx.fillRect((registerX[i] - this.state.origin_x) * ratio, (registerY[i] - this.state.origin_y) * ratio, 20 * ratio, 120 * (endEdge[i] - startEdge[i]) * ratio)
+            ctx.strokeRect((registerX[i] - this.state.origin_x) * ratio, (registerY[i] - this.state.origin_y) * ratio, 20 * ratio, 120 * (endEdge[i] - startEdge[i]) * ratio)
+            ctx.font = font
+            ctx.strokeText(i, (registerX[i] + 10 - this.state.origin_x) * ratio, (registerY[i] + 60 - this.state.origin_y) * ratio)
+          }
+        }
+      }
     }
 
     // ポート選択描画
@@ -108,16 +150,32 @@ export default class Canvas extends Component {
     for (var i in nodeType) {
       switch (nodeType[i]) {
         case 'A':
-          drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+          if (targetALUNode.indexOf(Number(i)) === -1) {
+            drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0)
+          } else {
+            drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1)
+          }
           break
         case 'S':
-          drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+          if (targetALUNode.indexOf(Number(i)) === -1) {
+            drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0)
+          } else {
+            drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1)
+          }
           break
         case 'M':
-          drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+          if (targetALUNode.indexOf(Number(i)) === -1) {
+            drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0)
+          } else {
+            drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1)
+          }
           break
         case 'D':
-          drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+          if (targetALUNode.indexOf(Number(i)) === -1) {
+            drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0)
+          } else {
+            drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1)
+          }
           break
         case 'I':
           drawIn(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
@@ -156,7 +214,7 @@ export default class Canvas extends Component {
           break;
       }
     }
-    function drawAdd(ctx, x, y, ratio) {
+    function drawAdd(ctx, x, y, ratio, i) {
       //下部接続線
       ctx.strokeStyle = "rgb(20, 20, 20)"
       ctx.lineWidth = "2px"
@@ -191,7 +249,11 @@ export default class Canvas extends Component {
       ctx.fill()
       ctx.stroke()
       //中央
-      ctx.fillStyle = "rgb(220, 220, 220)"
+      if (i === 1) {
+        ctx.fillStyle = "rgb(220, 20, 20)"
+      } else {
+        ctx.fillStyle = "rgb(220, 220, 220)"
+      }
       ctx.beginPath()
       ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
       ctx.fill()
@@ -202,7 +264,7 @@ export default class Canvas extends Component {
       ctx.textBaseline = "middle"
       ctx.fillText("＋", x, y)
     }
-    function drawSub(ctx, x, y, ratio) {
+    function drawSub(ctx, x, y, ratio, i) {
       //下部接続線
       ctx.strokeStyle = "rgb(20, 20, 20)"
       ctx.lineWidth = "2px"
@@ -237,7 +299,11 @@ export default class Canvas extends Component {
       ctx.fill()
       ctx.stroke()
       //中央
-      ctx.fillStyle = "rgb(220, 220, 220)"
+      if (i === 1) {
+        ctx.fillStyle = "rgb(220, 20, 20)"
+      } else {
+        ctx.fillStyle = "rgb(220, 220, 220)"
+      }
       ctx.beginPath()
       ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
       ctx.fill()
@@ -248,7 +314,7 @@ export default class Canvas extends Component {
       ctx.textBaseline = "middle"
       ctx.fillText("ー", x, y)
     }
-    function drawMulti(ctx, x, y, ratio) {
+    function drawMulti(ctx, x, y, ratio, i) {
       //下部接続線
       ctx.strokeStyle = "rgb(20, 20, 20)"
       ctx.lineWidth = "2px"
@@ -283,7 +349,11 @@ export default class Canvas extends Component {
       ctx.fill()
       ctx.stroke()
       //中央
-      ctx.fillStyle = "rgb(220, 220, 220)"
+      if (i === 1) {
+        ctx.fillStyle = "rgb(220, 20, 20)"
+      } else {
+        ctx.fillStyle = "rgb(220, 220, 220)"
+      }
       ctx.beginPath()
       ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
       ctx.fill()
@@ -294,7 +364,7 @@ export default class Canvas extends Component {
       ctx.textBaseline = "middle"
       ctx.fillText("×", x, y)
     }
-    function drawDiv(ctx, x, y, ratio) {
+    function drawDiv(ctx, x, y, ratio, i) {
       //下部接続線
       ctx.strokeStyle = "rgb(20, 20, 20)"
       ctx.lineWidth = "2px"
@@ -329,7 +399,11 @@ export default class Canvas extends Component {
       ctx.fill()
       ctx.stroke()
       //中央
-      ctx.fillStyle = "rgb(220, 220, 220)"
+      if (i === 1) {
+        ctx.fillStyle = "rgb(220, 20, 20)"
+      } else {
+        ctx.fillStyle = "rgb(220, 220, 220)"
+      }
       ctx.beginPath()
       ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
       ctx.fill()
@@ -390,19 +464,24 @@ export default class Canvas extends Component {
     if (this.state.isDragging) {
       switch (this.props.dfgMode) {
         case 2:
-          if (Number(this.state.selectNode[0]) !== -1) {
+          if (Number(this.state.selectNode[0]) !== -1 && Number(this.state.selectNode[1]) === -1 && Number(this.state.selectNode[2]) === -1) {
             var moveX = x / ratio + this.state.origin_x
             var moveY = y / ratio + this.state.origin_y
-            this.props.moveNodeHandler(this.props.selectTabId, Number(this.state.selectNode[0]), moveX, moveY)
+            this.props.moveNodeHandler(Number(this.state.selectNode[0]), moveX, moveY)
+          } else if (Number(this.state.selectNode[0]) !== -1 && Number(this.state.selectNode[1]) === -1 && Number(this.state.selectNode[2]) === 2) {
+            var moveX = x / ratio + this.state.origin_x
+            this.props.moveLifetimeHandler(Number(this.state.selectNode[0]), moveX)
           } else {
             var origin_x = (this.state.mouse_x - x) / ratio + this.state.origin_x
             var origin_y = (this.state.mouse_y - y) / ratio + this.state.origin_y
             this.setState({origin_x: origin_x, origin_y: origin_y})
           }
+          break
       }
     } else {
       const nodeInfo = this.props.nodeInfo[this.props.selectTabId]
       const selectnode = selectNode(x / ratio + this.state.origin_x, y / ratio + this.state.origin_y, nodeInfo)
+      //console.log(selectnode)
       this.setState({selectNode: selectnode})
     }
 
@@ -412,6 +491,10 @@ export default class Canvas extends Component {
       const nodeType = nodeInfo.nodeType
       const nodeX = nodeInfo.nodeX
       const nodeY = nodeInfo.nodeY
+      const registerX = nodeInfo.registerX
+      const registerY = nodeInfo.registerY
+      const startEdge = nodeInfo.startEdge
+      const endEdge = nodeInfo.endEdge
       let selectnode = [-1,-1,-1]
       for (var i in nodeType) {
         if (Math.pow(nodeX[i] - x, 2) + Math.pow(nodeY[i] - y, 2) <= Math.pow(20, 2)) {
@@ -435,16 +518,29 @@ export default class Canvas extends Component {
               selectnode.splice(0,2,i,2)
               return selectnode
             }
+            break
           case 'I':
             if (Math.pow(nodeX[i] - x, 2) + Math.pow(nodeY[i] - y + 35, 2) <= Math.pow(8, 2)) {
               selectnode.splice(0,2,i,0)
               return selectnode
             }
+            break
           case 'O':
             if (Math.pow(nodeX[i] - x, 2) + Math.pow(nodeY[i] - y - 35, 2) <= Math.pow(8, 2)) {
               selectnode.splice(0,2,i,3)
               return selectnode
             }
+            break
+        }
+      }
+      for (var i in registerX) {
+        if (registerX[i] !== 'none' && registerY[i] !== 'none') {
+          if (registerX[i] < x && registerX[i] + 20 > x) {
+            if (registerY[i] < y && registerY[i] + 120 * (endEdge[i] - startEdge[i]) > y) {
+              selectnode.splice(0,3,i,-1,2)
+              return selectnode
+            }
+          }
         }
       }
       return selectnode
@@ -481,7 +577,7 @@ export default class Canvas extends Component {
     switch (this.props.dfgMode) {
       case 1:
         if (this.state.selectNode[0] !== -1 && this.state.selectNode[1] === -1) {
-          this.props.removeNodeHandler(this.props.selectTabId, this.state.selectNode)
+          this.props.removeNodeHandler(this.state.selectNode)
         }
         break
       case 3:
@@ -507,7 +603,7 @@ export default class Canvas extends Component {
           if (!this.state.selectEdge) {
             this.setState({selectEdge: true, selectEdgeStore: this.state.selectNode})
           } else {
-            if (this.state.selectEdgeStore[1] === 0 && this.state.selectNode[1] > 0) {
+            if (this.state.selectEdgeStore[1] === 0 && this.state.selectNode[1] > 0 && !(this.state.selectEdgeStore[0] === this.state.selectNode[0])) {
               var edgeType
               switch (this.state.selectNode[1]) {
                 case 1:
@@ -520,9 +616,9 @@ export default class Canvas extends Component {
                   edgeType = 'c'
                   break
               }
-              this.props.drawEdgeHandler(this.props.selectTabId, this.state.selectEdgeStore[0], this.state.selectNode[0], edgeType)
+              this.props.drawEdgeHandler(this.state.selectEdgeStore[0], this.state.selectNode[0], edgeType)
             }
-            if (this.state.selectEdgeStore[1] > 0 && this.state.selectNode[1] === 0) {
+            if (this.state.selectEdgeStore[1] > 0 && this.state.selectNode[1] === 0 && !(this.state.selectEdgeStore[0] === this.state.selectNode[0])) {
               var edgeType
               switch (this.state.selectEdgeStore[1]) {
                 case 1:
@@ -535,16 +631,21 @@ export default class Canvas extends Component {
                   edgeType = 'c'
                   break
               }
-              this.props.drawEdgeHandler(this.props.selectTabId, this.state.selectNode[0], this.state.selectEdgeStore[0], edgeType)  
+              this.props.drawEdgeHandler(this.state.selectNode[0], this.state.selectEdgeStore[0], edgeType)  
             }
             
             this.setState({selectEdge: false})
           }
         }
         break
+      case 11:
+        if (Number(this.state.selectNode[0]) !== -1 && Number(this.state.selectNode[1]) === -1 && Number(this.state.selectNode[2]) === -1) {
+          this.props.paintNodeHandler(this.state.selectNode[0])
+        }
+        break
     }
     if (this.props.dfgMode >= 3 && this.props.dfgMode <= 8) {
-      this.props.putNodeHandler(this.props.selectTabId, nodeType, nodeX, nodeY)
+      this.props.putNodeHandler(nodeType, nodeX, nodeY)
     }
   }
   render () {

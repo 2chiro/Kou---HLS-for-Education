@@ -1,6 +1,6 @@
 {
   "scheduling": [
-    {"name": "ASAP", "path": "asap.pl", "type": "perl", "comment": "演算ができるようになった時刻ですぐ演算が実行される方式"},
+    {"name": "ASAP", "path": "asap.pl", "type": "perl", "comment": "演算ができるようになった時刻ですぐにその演算が実行される方式"},
     {"name": "ALAP", "path": "alap.pl", "type": "perl", "comment": "演算をできる限り遅い時刻で行う方式"},
     {"name": "リスト", "path": "list.pl", "type": "perl", "comment": "演算に優先度を与え、優先度から高い演算から実行される方式"},
     {"name": "中谷式", "path": "nakatani.pl", "type": "perl", "comment": "OB中谷さんが考案したテスト可能演算ペアを作る方式"}

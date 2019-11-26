@@ -1,8 +1,10 @@
 'use strict'
 
-const {app, BrowserWindow} = require('electron')
+const {app, BrowserWindow, ipcMain} = require('electron')
 const path = require('path')
 const url = require('url')
+
+const exec = require('child_process').execFile
 
 const { default: installExtension, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = require('electron-devtools-installer')
 
@@ -45,3 +47,22 @@ function createWindow () {
     mainWindow = null
   })
 }
+
+ipcMain.on('scheduling', (event, target, a, s, m, d) => {
+  console.log(target)
+  var algPath = path.join(__dirname, 'algorithms/scheduling/' + target.path)
+  var dfgPath = path.join(__dirname, 'noname/dfg.dat')
+  var sdfgPath = path.join(__dirname, 'noname/sdfg.dat')
+  console.log(algPath, dfgPath, a, s, m, d)
+  exec('perl', [algPath, dfgPath, sdfgPath, a, s, m, d], (err, stdout, stderr) => {
+    if (err != null) {
+      console.log(err)
+      var result = 'Error'
+      event.sender.send('end_scheduling', result)
+    } else {
+      console.log(stdout)
+      var result = 'Complete'
+      event.sender.send('end_scheduling', result)
+    }
+  })
+})

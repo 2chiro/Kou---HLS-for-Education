@@ -11,51 +11,89 @@ const Actions = {
             value: num
         }
     },
-    putNode: (tabId, nodeType, nodeX, nodeY) => {
+    putNode: (nodeType, nodeX, nodeY) => {
         return {
             type: 'PUT_NODE',
-            tabId: tabId,
             nodeType: nodeType,
             nodeX: nodeX,
             nodeY: nodeY
         }
     },
-    moveNode: (tabId, nodeId, moveX, moveY) => {
+    moveNode: (nodeId, moveX, moveY) => {
         return {
             type: 'MOVE_NODE',
-            tabId: tabId,
             nodeId: nodeId,
             moveX: moveX,
             moveY: moveY
         }
     },
-    removeNode: (tabId, selectNode) => {
+    removeNode: (selectNode) => {
         return {
             type: 'REMOVE_NODE',
-            tabId: tabId,
             nodeId: selectNode
         }
     },
-    drawEdge: (tabId, edge1, edge2, edgeType) => {
+    drawEdge: (edge1, edge2, edgeType) => {
         return {
             type: 'DRAW_EDGE',
-            tabId: tabId,
             nodeEdge1: edge1,
             nodeEdge2: edge2,
             nodeEdgeType: edgeType
         }
     },
-    changeCycle: (v, tabId) => {
+    changeCycle: (v) => {
         return {
             type: 'CHANGE_CYCLE',
-            tabId: tabId,
             cycle: v
         }
     },
-    arrangeCoordinates: (tabId) => {
+    changeOP: (id, v) => {
+        return {
+            type: 'CHANGE_OP',
+            opID: id,
+            value: v
+        }
+    },
+    arrangeCoordinates: () => {
         return {
             type: 'ARRANGE_COORDINATES',
-            tabId: tabId
+        }
+    },
+    analysisLifetime: () => {
+        return {
+            type: 'ANALYSIS_LIFETIME',
+        }
+    },
+    timeSetNode: (nodeTime, cycle) => {
+        return {
+            type: 'TIMESET_NODE',
+            nodeTime: nodeTime,
+            cycle: cycle
+        }
+    },
+    changeRegister: (v) => {
+        return {
+            type: 'CHANGE_REGISTER',
+            reg: v
+        }
+    },
+    moveLifetime: (edgeId, moveX) => {
+        return {
+            type: 'MOVE_LIFETIME',
+            edgeId: edgeId,
+            moveX: moveX
+        }
+    },
+    changeALU: (v) => {
+        return {
+            type: 'CHANGE_ALU',
+            value: v
+        }
+    },
+    paintNode: (nodeId) => {
+        return {
+            type: 'PAINT_NODE',
+            nodeId: nodeId
         }
     }
 }
