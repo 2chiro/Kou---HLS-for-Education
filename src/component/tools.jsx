@@ -37,7 +37,7 @@ export default class Tools extends Component {
         if (err) return
         console.log(res.body)
         this.setState({scheList: res.body.scheduling, bindList: res.body.binding,
-          algoScheValue: res.body.scheduling[0].name})
+          algoScheValue: res.body.scheduling[0].name, algoBindValue: res.body.binding[0].name})
       })
   }
   changeID (num) {
@@ -211,6 +211,10 @@ export default class Tools extends Component {
     const v = e.target.value
     this.setState({algoScheValue: v})
   }
+  changeAlgoBind (e) {
+    const v = e.target.value
+    this.setState({algoBindValue: v})
+  }
   startAlgoSche () {
     if (!this.state.isManualSche) {
       const node = this.props.nodeInfo[this.props.selectTabId]
@@ -251,6 +255,26 @@ export default class Tools extends Component {
       })
     }
   }
+  startAlgoBind () {
+    if (!this.state.isManualBind) {
+      const node = this.props.nodeInfo[this.props.selectTabId]
+      const target = this.state.bindList.find((v) => v.name === this.state.algoBindValue)
+      console.log(target)
+      ipcRenderer.send('binding', target)
+      ipcRenderer.on('end_binding', (event, result) => {
+        console.log(result)
+        if (result === 'Complete') {
+          const __dirname = path.resolve()
+          const bindPath = path.join(__dirname, 'noname/bind.dat')
+          const bindFile = fs.createReadStream(bindPath, 'utf8')
+          const bindLine = readLine.createInterface(bindFile, {})
+          bindLine.on('line', data => {
+            console.log(data)
+          })
+        }
+      })
+    }
+  }
   changeALU (e) {
     const v = e.target.value
     this.props.changeALUHandler(v)
@@ -270,6 +294,12 @@ export default class Tools extends Component {
     const paint = classNames({'dfg-icon2': this.props.dfgMode === 11}, {'dfg-icon': this.props.dfgMode !== 11})
 
     const scheList = this.state.scheList.map(i => {
+      return (
+      <option value={i.name} title={i.comment}>{i.name}</option>
+      )
+    })
+
+    const bindList = this.state.bindList.map(i => {
       return (
       <option value={i.name} title={i.comment}>{i.name}</option>
       )
@@ -426,6 +456,17 @@ export default class Tools extends Component {
                   <option value=''>演算器を選択</option>
                   {ALUList}
                 </select>
+              </label><br />
+              <label className="manual-auto">
+                <input type='radio' name='manual-auto'
+                  checked={!this.state.isManualBind} value='1'
+                  onChange={e => this.changeMABind(e)}/>自動</label><br/>
+              <label className='ma'>アルゴリズム<br />
+                <select name="scheduling" className='txtbox'
+                  value={this.state.algoBindValue} onChange={e => this.changeAlgoBind(e)}>
+                  {bindList}
+                </select>
+                <input type='button' value='実行' onClick={() => this.startAlgoBind()} />
               </label><br />
             </form>
           </div>

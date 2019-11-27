@@ -66,3 +66,22 @@ ipcMain.on('scheduling', (event, target, a, s, m, d) => {
     }
   })
 })
+
+ipcMain.on('binding', (event, target) => {
+  console.log(target)
+  var algPath = path.join(__dirname, 'algorithms/binding/', target.path)
+  var sdfgPath = path.join(__dirname, 'noname/sdfg.dat')
+  var bindPath = path.join(__dirname, 'noname/bind.dat')
+  console.log(algPath, sdfgPath, bindPath)
+  exec('java', ['-jar', algPath, sdfgPath, bindPath], (err, stdout, stderr) => {
+    if (err != null) {
+      console.log(err)
+      var result = 'Error'
+      event.sender.send('end_binding', result)
+    } else {
+      console.log(stdout)
+      var result = 'Complete'
+      event.sender.send('end_binding', result)
+    }
+  })
+})

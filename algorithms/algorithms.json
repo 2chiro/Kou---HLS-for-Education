@@ -6,6 +6,6 @@
     {"name": "中谷式", "path": "nakatani.pl", "type": "perl", "comment": "OB中谷さんが考案したテスト可能演算ペアを作る方式"}
   ],
   "binding": [
-
+    {"name": "LEA-クリーク分割", "path": "lea-cliquecover.jar", "type": "java", "comment": "接続線をなるべく増やさないレジスタ割当とクリークを使った演算器割当"}
   ]
 }
