@@ -64,7 +64,7 @@ export default class Tools extends Component {
         }
         break
       case 3:
-        this.props.sdfgArrangeHandler()
+        this.props.arrangeSDFGHandler()
 
         try {
           const node = this.props.nodeInfo[this.props.selectTabId]
@@ -86,16 +86,79 @@ export default class Tools extends Component {
           sdfgFile.write('--exclusive block' + '\n')
           sdfgFile.end()
 
-          this.props.lifetimeAnalysisHandler()
+          this.props.analysisLifetimeHandler()
 
         } catch (err) {
           console.log(err)
         }
         break
-      
+      case 4:
+        try {
+          const node = this.props.nodeInfo[this.props.selectTabId]
+          const useRegister = node.useRegister
+          const useALU = node.useALU
+          const __dirname = path.resolve()
+          const bindPath = path.join(__dirname, 'noname/bind.dat')
+          const bindFile = fs.createWriteStream(bindPath, 'utf8')
+          bindFile.write('Register.' + '\t' + node.reg + '\n')
+          bindFile.write('add.' + '\t' + node.add + '\n')
+          bindFile.write('sub.' + '\t' + node.sub + '\n')
+          bindFile.write('mult.' + '\t' + node.mult + '\n')
+          bindFile.write('div.' + '\t' + node.div + '\n')
+          bindFile.write('--register binding' + '\n')
+          for (var i in useRegister) {
+            var reg_num = Number(i) + 1
+            bindFile.write(String(reg_num))
+            for (var j in useRegister[i]) {
+              bindFile.write('\t' + useRegister[i][j])
+            }
+            bindFile.write('\n')
+          }
+          bindFile.write('--operation binding' + '\n')
+          for (var i in useALU) {
+            var op = useALU[i].name
+            var opName = op.substr(0, 3)
+            var opNum = op.substr(3)
+            switch (opName) {
+              case '加算器':
+                bindFile.write('Add' + opNum)
+                for (var j in useALU[i].node) {
+                  bindFile.write('\t' + useALU[i].node[j])
+                }
+                bindFile.write('\n')
+                break
+              case '減算器':
+                bindFile.write('Sub' + opNum)
+                for (var j in useALU[i].node) {
+                  bindFile.write('\t' + useALU[i].node[j])
+                }
+                bindFile.write('\n')
+                break
+              case '乗算器':
+                bindFile.write('Mul' + opNum)
+                for (var j in useALU[i].node) {
+                  bindFile.write('\t' + useALU[i].node[j])
+                }
+                bindFile.write('\n')
+                break
+              case '除算器':
+                bindFile.write('Div' + opNum)
+                for (var j in useALU[i].node) {
+                  bindFile.write('\t' + useALU[i].node[j])
+                }
+                bindFile.write('\n')
+                break
+            }
+          }
+          bindFile.write('--exclusive block' + '\n')
+          bindFile.end()
+        } catch (err) {
+          console.log(err)
+        }
+        break
     }
 
-    this.props.IDClickHandler(num)
+    this.props.clickIDHandler(num)
   }
   //マニュアルー自動切り替え
   changeMASChe (e) {
@@ -120,19 +183,19 @@ export default class Tools extends Component {
       const v = e.target.value
       const vrp = v.replace(/[^0-9]/g, '')
       const nv = Number(vrp) > 100 ? 100: Number(vrp)
-      this.props.cycleChangeHandler(nv)
+      this.props.changeCycleHandler(nv)
     }
   }
   incrementCycle () {
     if (this.state.isManualSche) {
       const v = this.props.nodeInfo[this.props.selectTabId].cycle + 1 > 100 ? 100 : this.props.nodeInfo[this.props.selectTabId].cycle + 1
-      this.props.cycleChangeHandler(v)
+      this.props.changeCycleHandler(v)
     }
   }
   decrementCycle () {
     if (this.state.isManualSche) {
       const v = this.props.nodeInfo[this.props.selectTabId].cycle - 1 < 0 ? 0 : this.props.nodeInfo[this.props.selectTabId].cycle - 1
-      this.props.cycleChangeHandler(v)
+      this.props.changeCycleHandler(v)
     }
   }
   //レジスタ数変化
@@ -141,19 +204,19 @@ export default class Tools extends Component {
       const v = e.target.value
       const vrp = v.replace(/[^0-9]/g, '')
       const nv = Number(vrp) > 100 ? 100: Number(vrp)
-      this.props.registerChangeHandler(nv)
+      this.props.changeRegisterHandler(nv)
     }
   }
   incrementReg () {
     if (this.state.isManualBind) {
       const v = this.props.nodeInfo[this.props.selectTabId].reg + 1 > 100 ? 100 : this.props.nodeInfo[this.props.selectTabId].reg + 1
-      this.props.registerChangeHandler(v)
+      this.props.changeRegisterHandler(v)
     }
   }
   decrementReg () {
     if (this.state.isManualBind) {
       const v = this.props.nodeInfo[this.props.selectTabId].reg - 1 < 0 ? 0 : this.props.nodeInfo[this.props.selectTabId].reg - 1
-      this.props.registerChangeHandler(v)
+      this.props.changeRegisterHandler(v)
     }
   }
   //演算器数変化
@@ -162,7 +225,7 @@ export default class Tools extends Component {
       const v = e.target.value
       const vrp = v.replace(/[^0-9]/g, '')
       const nv = Number(vrp) > 100 ? 100: Number(vrp)
-      this.props.opChangeHandler(i, nv)
+      this.props.changeOPHandler(i, nv)
     }
   }
   incrementOP (i) {
@@ -183,7 +246,7 @@ export default class Tools extends Component {
           break
       }
       const v = op + 1 > 100 ? 100 : op + 1
-      this.props.opChangeHandler(i, v)
+      this.props.changeOPHandler(i, v)
     }
   }
   decrementOP (i) {
@@ -204,7 +267,7 @@ export default class Tools extends Component {
           break
       }
       const v = op - 1 < 1 ? 1 : op - 1
-      this.props.opChangeHandler(i, v)
+      this.props.changeOPHandler(i, v)
     }
   }
   changeAlgoSche (e) {
@@ -243,7 +306,7 @@ export default class Tools extends Component {
               vertex = false
             } else if (str[0] === '--exclusive') {
               cycle = cycle + 1
-              this.props.nodeTimeSetHandler(nodeTime, cycle)
+              this.props.setNodeTimeHandler(nodeTime, cycle)
             } else {
               if (vertex) {
                 nodeTime.push(Number(str[2]))
@@ -268,8 +331,65 @@ export default class Tools extends Component {
           const bindPath = path.join(__dirname, 'noname/bind.dat')
           const bindFile = fs.createReadStream(bindPath, 'utf8')
           const bindLine = readLine.createInterface(bindFile, {})
+          var reg_bind = false
+          var op_bind = false
+          var separator = /\s+/
+          var useRegister = []
+          var useALU = []
+          var reg = 0
           bindLine.on('line', data => {
-            console.log(data)
+            var str = data.split(separator)
+            if (str[0] === 'Register.') {
+              reg = Number(str[1])
+            } else if (str[0] === '--register') {
+              reg_bind = true
+              op_bind = false
+            } else if (str[0] === '--operation') {
+              reg_bind = false
+              op_bind = true
+            } else if (str[0] === '--exclusive') {
+              this.props.useRegAndALUHandler(reg, useRegister, useALU)
+            } else {
+              if (reg_bind) {
+                var r = []
+                for (var i = 1; i < str.length; i++) {
+                  r.push(Number(str[i]))
+                }
+                useRegister.push(r)
+              }
+              if (op_bind) {
+                var op = str[0].substr(0, 3)
+                var num = str[0].substr(3)
+                var node = []
+                switch (op) {
+                  case 'Add':
+                    for (var i = 1; i < str.length; i++) {
+                      node.push(Number(str[i]))
+                    }
+                    useALU.push({name: '加算器' + num, node: node})
+                    break;
+                  case 'Sub':
+                    for (var i = 1; i < str.length; i++) {
+                      node.push(Number(str[i]))
+                    }
+                    useALU.push({name: '減算器' + num, node: node})
+                    break;
+                  case 'Mul':
+                    for (var i = 1; i < str.length; i++) {
+                      node.push(Number(str[i]))
+                    }
+                    useALU.push({name: '乗算器' + num, node: node})
+                    break;
+                  case 'Div':
+                    for (var i = 1; i < str.length; i++) {
+                      node.push(Number(str[i]))
+                    }
+                    useALU.push({name: '除算器' + num, node: node})
+                    break;
+
+                }
+              }
+            }
           })
         }
       })
@@ -314,18 +434,18 @@ export default class Tools extends Component {
       case 1:
         tools = <div className="tools-menu">
           <div className="tools-menu2">
-            <div onClick={() => this.props.dfgmodeClickHandler(0)}><img src={cursorIcon} className={cursor} /></div>
-            <div onClick={() => this.props.dfgmodeClickHandler(1)}><img src={eraserIcon} className={eraser} /></div>
-            <div onClick={() => this.props.dfgmodeClickHandler(2)}><img src={moveIcon} className={move} /></div>
-            <div onClick={() => this.props.dfgmodeClickHandler(9)}><img src={connectIcon} className={connect} /></div>
+            <div onClick={() => this.props.clickDFGModeHandler(0)}><img src={cursorIcon} className={cursor} /></div>
+            <div onClick={() => this.props.clickDFGModeHandler(1)}><img src={eraserIcon} className={eraser} /></div>
+            <div onClick={() => this.props.clickDFGModeHandler(2)}><img src={moveIcon} className={move} /></div>
+            <div onClick={() => this.props.clickDFGModeHandler(9)}><img src={connectIcon} className={connect} /></div>
           </div>
           <div className="tools-menu2">
-            <div onClick={() => this.props.dfgmodeClickHandler(3)}><img src={addIcon} className={add} /></div>
-            <div onClick={() => this.props.dfgmodeClickHandler(4)}><img src={subIcon} className={sub} /></div>
-            <div onClick={() => this.props.dfgmodeClickHandler(5)}><img src={multiIcon} className={multi} /></div>
-            <div onClick={() => this.props.dfgmodeClickHandler(6)}><img src={divIcon} className={div} /></div>
-            <div onClick={() => this.props.dfgmodeClickHandler(7)}><img src={inputIcon} className={input} /></div>
-            <div onClick={() => this.props.dfgmodeClickHandler(8)}><img src={outputIcon} className={output} /></div>
+            <div onClick={() => this.props.clickDFGModeHandler(3)}><img src={addIcon} className={add} /></div>
+            <div onClick={() => this.props.clickDFGModeHandler(4)}><img src={subIcon} className={sub} /></div>
+            <div onClick={() => this.props.clickDFGModeHandler(5)}><img src={multiIcon} className={multi} /></div>
+            <div onClick={() => this.props.clickDFGModeHandler(6)}><img src={divIcon} className={div} /></div>
+            <div onClick={() => this.props.clickDFGModeHandler(7)}><img src={inputIcon} className={input} /></div>
+            <div onClick={() => this.props.clickDFGModeHandler(8)}><img src={outputIcon} className={output} /></div>
           </div>
           <div className="tools-menu2">
             <button onClick={() => this.changeID(2)}>次へ</button>
@@ -335,8 +455,8 @@ export default class Tools extends Component {
       case 2:
         tools = <div className="tools-menu">
           <div className="tools-menu2">
-            <div onClick={() => this.props.dfgmodeClickHandler(0)}><img src={cursorIcon} className={cursor} /></div>
-            <div onClick={() => this.props.dfgmodeClickHandler(2)}><img src={moveIcon} className={move} /></div>
+            <div onClick={() => this.props.clickDFGModeHandler(0)}><img src={cursorIcon} className={cursor} /></div>
+            <div onClick={() => this.props.clickDFGModeHandler(2)}><img src={moveIcon} className={move} /></div>
           </div>
           <div className="tools-menu2">
             <form>
@@ -427,9 +547,9 @@ export default class Tools extends Component {
       case 3:
         tools = <div className="tools-menu">
           <div className="tools-menu2">
-            <div onClick={() => this.props.dfgmodeClickHandler(0)}><img src={cursorIcon} className={cursor} /></div>
-            <div onClick={() => this.props.dfgmodeClickHandler(2)}><img src={moveIcon} className={move} /></div>
-            <div onClick={() => this.props.dfgmodeClickHandler(11)}><img src={paintIcon} className={paint} /></div>
+            <div onClick={() => this.props.clickDFGModeHandler(0)}><img src={cursorIcon} className={cursor} /></div>
+            <div onClick={() => this.props.clickDFGModeHandler(2)}><img src={moveIcon} className={move} /></div>
+            <div onClick={() => this.props.clickDFGModeHandler(11)}><img src={paintIcon} className={paint} /></div>
           </div>
           <div className="tools-menu2">
             <form>
@@ -476,6 +596,13 @@ export default class Tools extends Component {
           </div>
         </div>
         break
+      case 4:
+        tools = <div className="tools-menu">
+          <div className="tools-menu2">
+            <button onClick={() => this.changeID(3)}>前へ</button>
+          </div>
+        </div>
+        break;
     }
     return (
       <div className="tools">

@@ -95,6 +95,14 @@ const Actions = {
             type: 'PAINT_NODE',
             nodeId: nodeId
         }
+    },
+    useRegAndALU: (reg, useRegister, useALU) => {
+        return {
+            type: 'USE_REGISTER_ALU',
+            reg: reg,
+            useRegister: useRegister,
+            useALU: useALU
+        }
     }
 }
 

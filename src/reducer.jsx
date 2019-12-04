@@ -357,6 +357,23 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+        case 'USE_REGISTER_ALU':
+            var node = state.nodeInfo[state.selectTabId]
+            node.reg = action.reg
+            node.useRegister = action.useRegister
+            node.useALU = action.useALU
+
+            var registerX = new Array(node.nodeEdge1.length)
+            for (var i in node.useRegister) {
+                for (var j in node.useRegister[i]) {
+                    registerX[node.useRegister[i][j]] = node.nodeMaxX + 100 + 40 * i
+                }
+            }
+            node.registerX = registerX
+            return {
+                ...state,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+            }
         default:
             return state
     }

@@ -4,6 +4,7 @@ const {app, BrowserWindow, ipcMain} = require('electron')
 const path = require('path')
 const url = require('url')
 
+app.commandLine.appendSwitch("js-flags", "--max-old-space-size=4096");
 const exec = require('child_process').execFile
 
 const { default: installExtension, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = require('electron-devtools-installer')

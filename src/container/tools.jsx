@@ -10,32 +10,35 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        dfgmodeClickHandler: (num) => {
+        clickDFGModeHandler: (num) => {
             dispatch(Actions.changeDfgMode(num))
         },
-        IDClickHandler: (num) => {
+        clickIDHandler: (num) => {
             dispatch(Actions.changeId(num))
         },
-        cycleChangeHandler: (v) => {
+        changeCycleHandler: (v) => {
             dispatch(Actions.changeCycle(v))
         },
-        opChangeHandler: (id, v) => {
+        changeOPHandler: (id, v) => {
             dispatch(Actions.changeOP(id, v))
         },
-        sdfgArrangeHandler: () => {
+        arrangeSDFGHandler: () => {
             dispatch(Actions.arrangeCoordinates())
         },
-        lifetimeAnalysisHandler: () => {
+        analysisLifetimeHandler: () => {
             dispatch(Actions.analysisLifetime())
         },
-        nodeTimeSetHandler: (nodeTime, cycle) => {
+        setNodeTimeHandler: (nodeTime, cycle) => {
             dispatch(Actions.timeSetNode(nodeTime, cycle))
         },
-        registerChangeHandler: (v) => {
+        changeRegisterHandler: (v) => {
             dispatch(Actions.changeRegister(v))
         },
         changeALUHandler: (v) => {
             dispatch(Actions.changeALU(v))
+        },
+        useRegAndALUHandler: (reg, useRegister, useALU) => {
+            dispatch(Actions.useRegAndALU(reg, useRegister, useALU))
         }
     }
 }
