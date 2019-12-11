@@ -43,117 +43,139 @@ export default class Tools extends Component {
   changeID (num) {
     switch (num) {
       case 2:
-        try {
-          const node = this.props.nodeInfo[this.props.selectTabId]
-          const __dirname = path.resolve()
-          const dfgPath = path.join(__dirname, 'noname/dfg.dat')
-          const dfgFile = fs.createWriteStream(dfgPath, 'utf8')
-          dfgFile.write('--vertex' + '\n')
-          for (var i in node.nodeType) {
-            dfgFile.write(i + '\t' + node.nodeType[i] + '\t' + node.nodeX[i] + '\t' + node.nodeY[i] + '\n')
+        if (this.props.id === 1) {
+          try {
+            const node = this.props.nodeInfo[this.props.selectTabId]
+            const __dirname = path.resolve()
+            const dfgPath = path.join(__dirname, 'noname/dfg.dat')
+            const dfgFile = fs.createWriteStream(dfgPath, 'utf8')
+            dfgFile.write('--vertex' + '\n')
+            for (var i in node.nodeType) {
+              dfgFile.write(i + '\t' + node.nodeType[i] + '\t' + node.nodeX[i] + '\t' + node.nodeY[i] + '\n')
+            }
+            dfgFile.write('--edge' + '\n')
+            for (var i in node.nodeEdgeType) {
+              dfgFile.write(i + '\t' + node.nodeEdge1[i] + '\t' + node.nodeEdge2[i] + '\t' + node.nodeEdgeType[i] + '\n')
+            }
+            dfgFile.write('--exclusive block' + '\n')
+            dfgFile.end()
+  
+          } catch (err) {
+            console.log(err)
           }
-          dfgFile.write('--edge' + '\n')
-          for (var i in node.nodeEdgeType) {
-            dfgFile.write(i + '\t' + node.nodeEdge1[i] + '\t' + node.nodeEdge2[i] + '\t' + node.nodeEdgeType[i] + '\n')
-          }
-          dfgFile.write('--exclusive block' + '\n')
-          dfgFile.end()
-
-        } catch (err) {
-          console.log(err)
         }
         break
       case 3:
-        this.props.arrangeSDFGHandler()
+        if (this.props.id === 2) {
+          this.props.arrangeSDFGHandler()
 
-        try {
-          const node = this.props.nodeInfo[this.props.selectTabId]
-          const __dirname = path.resolve()
-          const sdfgPath = path.join(__dirname, 'noname/sdfg.dat')
-          const sdfgFile = fs.createWriteStream(sdfgPath, 'utf8')
-          sdfgFile.write('add.' + '\t' + node.add + '\n')
-          sdfgFile.write('sub.' + '\t' + node.sub + '\n')
-          sdfgFile.write('mult.' + '\t' + node.mult + '\n')
-          sdfgFile.write('div.' + '\t' + node.div + '\n')
-          sdfgFile.write('--vertex' + '\n')
-          for (var i in node.nodeType) {
-            sdfgFile.write(i + '\t' + node.nodeType[i] + '\t' + node.nodeTime[i] + '\t' + node.nodeX[i] + '\t' + node.nodeY[i] + '\n')
+          try {
+            const node = this.props.nodeInfo[this.props.selectTabId]
+            const __dirname = path.resolve()
+            const sdfgPath = path.join(__dirname, 'noname/sdfg.dat')
+            const sdfgFile = fs.createWriteStream(sdfgPath, 'utf8')
+            sdfgFile.write('add.' + '\t' + node.add + '\n')
+            sdfgFile.write('sub.' + '\t' + node.sub + '\n')
+            sdfgFile.write('mult.' + '\t' + node.mult + '\n')
+            sdfgFile.write('div.' + '\t' + node.div + '\n')
+            sdfgFile.write('--vertex' + '\n')
+            for (var i in node.nodeType) {
+              sdfgFile.write(i + '\t' + node.nodeType[i] + '\t' + node.nodeTime[i] + '\t' + node.nodeX[i] + '\t' + node.nodeY[i] + '\n')
+            }
+            sdfgFile.write('--edge' + '\n')
+            for (var i in node.nodeEdgeType) {
+              sdfgFile.write(i + '\t' + node.nodeEdge1[i] + '\t' + node.nodeEdge2[i] + '\t' + node.nodeEdgeType[i] + '\n')
+            }
+            sdfgFile.write('--exclusive block' + '\n')
+            sdfgFile.end()
+  
+            this.props.analysisLifetimeHandler()
+  
+          } catch (err) {
+            console.log(err)
           }
-          sdfgFile.write('--edge' + '\n')
-          for (var i in node.nodeEdgeType) {
-            sdfgFile.write(i + '\t' + node.nodeEdge1[i] + '\t' + node.nodeEdge2[i] + '\t' + node.nodeEdgeType[i] + '\n')
-          }
-          sdfgFile.write('--exclusive block' + '\n')
-          sdfgFile.end()
-
-          this.props.analysisLifetimeHandler()
-
-        } catch (err) {
-          console.log(err)
         }
         break
       case 4:
-        try {
-          const node = this.props.nodeInfo[this.props.selectTabId]
-          const useRegister = node.useRegister
-          const useALU = node.useALU
-          const __dirname = path.resolve()
-          const bindPath = path.join(__dirname, 'noname/bind.dat')
-          const bindFile = fs.createWriteStream(bindPath, 'utf8')
-          bindFile.write('Register.' + '\t' + node.reg + '\n')
-          bindFile.write('add.' + '\t' + node.add + '\n')
-          bindFile.write('sub.' + '\t' + node.sub + '\n')
-          bindFile.write('mult.' + '\t' + node.mult + '\n')
-          bindFile.write('div.' + '\t' + node.div + '\n')
-          bindFile.write('--register binding' + '\n')
-          for (var i in useRegister) {
-            var reg_num = Number(i) + 1
-            bindFile.write(String(reg_num))
-            for (var j in useRegister[i]) {
-              bindFile.write('\t' + useRegister[i][j])
+        if (this.props.id === 3) {
+          try {
+            const node = this.props.nodeInfo[this.props.selectTabId]
+            const useRegister = node.useRegister
+            const useALU = node.useALU
+            const __dirname = path.resolve()
+            const bindPath = path.join(__dirname, 'noname/bind.dat')
+            const bindFile = fs.createWriteStream(bindPath, 'utf8')
+            bindFile.write('Register.' + '\t' + node.reg + '\n')
+            bindFile.write('add.' + '\t' + node.add + '\n')
+            bindFile.write('sub.' + '\t' + node.sub + '\n')
+            bindFile.write('mult.' + '\t' + node.mult + '\n')
+            bindFile.write('div.' + '\t' + node.div + '\n')
+            bindFile.write('--register binding' + '\n')
+            for (var i in useRegister) {
+              var reg_num = Number(i) + 1
+              bindFile.write(String(reg_num))
+              for (var j in useRegister[i]) {
+                bindFile.write('\t' + useRegister[i][j])
+              }
+              bindFile.write('\n')
             }
-            bindFile.write('\n')
-          }
-          bindFile.write('--operation binding' + '\n')
-          for (var i in useALU) {
-            var op = useALU[i].name
-            var opName = op.substr(0, 3)
-            var opNum = op.substr(3)
-            switch (opName) {
-              case '加算器':
-                bindFile.write('Add' + opNum)
-                for (var j in useALU[i].node) {
-                  bindFile.write('\t' + useALU[i].node[j])
-                }
-                bindFile.write('\n')
-                break
-              case '減算器':
-                bindFile.write('Sub' + opNum)
-                for (var j in useALU[i].node) {
-                  bindFile.write('\t' + useALU[i].node[j])
-                }
-                bindFile.write('\n')
-                break
-              case '乗算器':
-                bindFile.write('Mul' + opNum)
-                for (var j in useALU[i].node) {
-                  bindFile.write('\t' + useALU[i].node[j])
-                }
-                bindFile.write('\n')
-                break
-              case '除算器':
-                bindFile.write('Div' + opNum)
-                for (var j in useALU[i].node) {
-                  bindFile.write('\t' + useALU[i].node[j])
-                }
-                bindFile.write('\n')
-                break
+            bindFile.write('--operation binding' + '\n')
+            for (var i in useALU) {
+              var op = useALU[i].name
+              var opName = op.substr(0, 3)
+              var opNum = op.substr(3)
+              switch (opName) {
+                case '加算器':
+                  bindFile.write('Add' + opNum)
+                  for (var j in useALU[i].node) {
+                    bindFile.write('\t' + useALU[i].node[j])
+                  }
+                  bindFile.write('\n')
+                  break
+                case '減算器':
+                  bindFile.write('Sub' + opNum)
+                  for (var j in useALU[i].node) {
+                    bindFile.write('\t' + useALU[i].node[j])
+                  }
+                  bindFile.write('\n')
+                  break
+                case '乗算器':
+                  bindFile.write('Mul' + opNum)
+                  for (var j in useALU[i].node) {
+                    bindFile.write('\t' + useALU[i].node[j])
+                  }
+                  bindFile.write('\n')
+                  break
+                case '除算器':
+                  bindFile.write('Div' + opNum)
+                  for (var j in useALU[i].node) {
+                    bindFile.write('\t' + useALU[i].node[j])
+                  }
+                  bindFile.write('\n')
+                  break
+              }
             }
+            bindFile.write('--exclusive block' + '\n')
+            bindFile.end()
+
+            ipcRenderer.send('vhdl')
+            ipcRenderer.on('end_vhdl', (event, result) => {
+              console.log(result)
+              if (result === 'Complete') {
+                const __dirname = path.resolve()
+                const cfPath = path.join(__dirname, 'noname/cf.dat')
+                const cfFile = fs.createReadStream(cfPath, 'utf8')
+                const cfLine = readLine.createInterface(cfFile, {})
+                var vertex = false
+                var separator = /\s+/
+                cfLine.on('line', data => {
+                  console.log(data)
+                })
+              }
+            })
+          } catch (err) {
+            console.log(err)
           }
-          bindFile.write('--exclusive block' + '\n')
-          bindFile.end()
-        } catch (err) {
-          console.log(err)
         }
         break
     }

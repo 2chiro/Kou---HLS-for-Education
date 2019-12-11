@@ -86,3 +86,23 @@ ipcMain.on('binding', (event, target) => {
     }
   })
 })
+
+ipcMain.on('vhdl', (event) => {
+  var algPath = path.join(__dirname, 'algorithms/vhdl/cad-fullvhdl.pl')
+  var sdfgPath = path.join(__dirname, 'noname/sdfg.dat')
+  var bindPath = path.join(__dirname, 'noname/bind.dat')
+  var cfPath = path.join(__dirname, 'noname/cf.dat')
+  var vhdlPath = path.join(__dirname, 'noname/noname.vhdl')
+  console.log(algPath, sdfgPath, bindPath, cfPath, vhdlPath)
+  exec('perl', [algPath, sdfgPath, bindPath, cfPath, vhdlPath], (err, stdout, stderr) => {
+    if (err != null) {
+      console.log(err)
+      var result = 'Error'
+      event.sender.send('end_vhdl', result)
+    } else {
+      console.log(stdout)
+      var result = 'Complete'
+      event.sender.send('end_vhdl', result)
+    }
+  })
+})
