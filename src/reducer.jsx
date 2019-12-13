@@ -374,6 +374,105 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+        case 'CALCULATE_CF':
+            var node = state.nodeInfo[state.selectTabId]
+            var rtlNode = action.rtlNode
+            var rtlLine1 = action.rtlLine1
+            var rtlLine2 = action.rtlLine2
+            var rtlLine3 = action.rtlLine3
+            var aluX = [], aluY = 0
+            var regX = []
+            var muxX = [], muxY = []
+            var inputX = [], inputY = 0
+            var outputX = [], outputY = 0
+
+            var input = 0, output = 0, reg = 0
+            var add = 0, sub = 0, mult = 0, div = 0, mux = 0
+            for (var i in rtlNode) {
+                switch (rtlNode[i]) {
+                    case 1:
+                        input = input + 1
+                        break
+                    case 2:
+                        output = output + 1
+                        break
+                    case 3:
+                        reg = reg + 1
+                        break
+                    case 4:
+                        add = add + 1
+                        break
+                    case 5:
+                        sub = sub + 1
+                        break
+                    case 6:
+                        mult = mult + 1
+                        break
+                    case 7:
+                        div = div + 1
+                        break
+                    case 8:
+                        mux = mux + 1
+                        break
+                }
+            }
+
+            var aluNode = []
+            var muxNode = []
+            var regNode = []
+            var inputNode = []
+            var outputNode = []
+
+            var umax_n = 0, tmux_n = 0, mux_s = 0, in_s = 0;
+
+            // レジスタ・マルチプレクサ・演算器相対配置
+            var umux_x = 0, umux_y = -60, tmux_x = 0, tmux_y = 30
+            var alu_x = 30, reg_x = 0, out_x = 0
+            var l = 0, z = 0
+            for (var i in rtlLine1) {
+                // 下部（レジスター演算器間）
+                if (rtlNode[rtlLine2[i]] === 4 || rtlNode[rtlLine2[i]] === 5 || rtlNode[rtlLine2[i]] === 6 || rtlNode[rtlLine2[i]] === 7) {
+                   for (var j = i + 1; j < rtlLine1.length; j++) {
+                       if (rtlLine2[i] === rtlLine2[j]) {
+                            var alu = []
+                            alu.push(rtlNode[rtlLine2[i]])
+                            alu.push(rtlLine2[i])
+                            aluNode.push(alu)
+                            aluX.push(alu_x)
+                            if (rtlNode[rtlLine1[i]] === 8) {
+                                if (rtlLine3[i] === 1) {
+                                    muxX.push(umux_x)
+                                    muxY.push(umux_y)
+                                    if (umux_n < 1) {
+                                        umux_n = umux_n + 1
+                                    }
+                                    mux_s = mux_s + 1
+                                    
+                                    umux_alu(i, umux_x, umux_y, 1, m, 1, rtlLine2[i])
+                                } else {
+                                    umux_alu(i, umux_x + 60, umux_y, 1, m, 2, rtlLine2[i])
+                                }
+                            }
+                            if (rtlNode[rtlLine1[j]] === 8) {
+                                var m = mux_s
+                                if (rtlLine3[j] === 2) {
+                                    umux_alu(j, umux_x + 60, umux_y, 1, m, 2, rtlLine2[i])
+                                } else {
+                                    umux_alu(j, umux_x, umux_y, 1, m, 1, rtlLine2[i])
+                                }
+                            }
+                            umux_x = umux_x + 150
+                            cul_x = culx + 150
+                       }
+                   } 
+                }
+            }
+
+            
+            return {
+                ...state,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+            }
         default:
             return state
     }

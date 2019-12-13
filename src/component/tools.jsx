@@ -98,83 +98,126 @@ export default class Tools extends Component {
         break
       case 4:
         if (this.props.id === 3) {
-          try {
-            const node = this.props.nodeInfo[this.props.selectTabId]
-            const useRegister = node.useRegister
-            const useALU = node.useALU
-            const __dirname = path.resolve()
-            const bindPath = path.join(__dirname, 'noname/bind.dat')
-            const bindFile = fs.createWriteStream(bindPath, 'utf8')
-            bindFile.write('Register.' + '\t' + node.reg + '\n')
-            bindFile.write('add.' + '\t' + node.add + '\n')
-            bindFile.write('sub.' + '\t' + node.sub + '\n')
-            bindFile.write('mult.' + '\t' + node.mult + '\n')
-            bindFile.write('div.' + '\t' + node.div + '\n')
-            bindFile.write('--register binding' + '\n')
-            for (var i in useRegister) {
-              var reg_num = Number(i) + 1
-              bindFile.write(String(reg_num))
-              for (var j in useRegister[i]) {
-                bindFile.write('\t' + useRegister[i][j])
-              }
-              bindFile.write('\n')
-            }
-            bindFile.write('--operation binding' + '\n')
-            for (var i in useALU) {
-              var op = useALU[i].name
-              var opName = op.substr(0, 3)
-              var opNum = op.substr(3)
-              switch (opName) {
-                case '加算器':
-                  bindFile.write('Add' + opNum)
-                  for (var j in useALU[i].node) {
-                    bindFile.write('\t' + useALU[i].node[j])
-                  }
-                  bindFile.write('\n')
-                  break
-                case '減算器':
-                  bindFile.write('Sub' + opNum)
-                  for (var j in useALU[i].node) {
-                    bindFile.write('\t' + useALU[i].node[j])
-                  }
-                  bindFile.write('\n')
-                  break
-                case '乗算器':
-                  bindFile.write('Mul' + opNum)
-                  for (var j in useALU[i].node) {
-                    bindFile.write('\t' + useALU[i].node[j])
-                  }
-                  bindFile.write('\n')
-                  break
-                case '除算器':
-                  bindFile.write('Div' + opNum)
-                  for (var j in useALU[i].node) {
-                    bindFile.write('\t' + useALU[i].node[j])
-                  }
-                  bindFile.write('\n')
-                  break
-              }
-            }
-            bindFile.write('--exclusive block' + '\n')
-            bindFile.end()
 
-            ipcRenderer.send('vhdl')
-            ipcRenderer.on('end_vhdl', (event, result) => {
-              console.log(result)
-              if (result === 'Complete') {
+          f1(this.props).then(f2)
+            .then((response) => {
+              console.log(response)
+              console.log("BIND_VHDL_END")
+            })
+
+          function f1(props) {
+            return new Promise ((resolve, reject) => {
+              try {
+                const node = props.nodeInfo[props.selectTabId]
+                const useRegister = node.useRegister
+                const useALU = node.useALU
                 const __dirname = path.resolve()
-                const cfPath = path.join(__dirname, 'noname/cf.dat')
-                const cfFile = fs.createReadStream(cfPath, 'utf8')
-                const cfLine = readLine.createInterface(cfFile, {})
-                var vertex = false
-                var separator = /\s+/
-                cfLine.on('line', data => {
-                  console.log(data)
-                })
+                const bindPath = path.join(__dirname, 'noname/bind.dat')
+                const bindFile = fs.createWriteStream(bindPath, 'utf8')
+                bindFile.write('Register.' + '\t' + node.reg + '\n')
+                bindFile.write('add.' + '\t' + node.add + '\n')
+                bindFile.write('sub.' + '\t' + node.sub + '\n')
+                bindFile.write('mult.' + '\t' + node.mult + '\n')
+                bindFile.write('div.' + '\t' + node.div + '\n')
+                bindFile.write('--register binding' + '\n')
+                for (var i in useRegister) {
+                  var reg_num = Number(i) + 1
+                  bindFile.write(String(reg_num))
+                  for (var j in useRegister[i]) {
+                    bindFile.write('\t' + useRegister[i][j])
+                  }
+                  bindFile.write('\n')
+                }
+                bindFile.write('--operation binding' + '\n')
+                for (var i in useALU) {
+                  var op = useALU[i].name
+                  var opName = op.substr(0, 3)
+                  var opNum = op.substr(3)
+                  switch (opName) {
+                    case '加算器':
+                      bindFile.write('Add' + opNum)
+                      for (var j in useALU[i].node) {
+                        bindFile.write('\t' + useALU[i].node[j])
+                      }
+                      bindFile.write('\n')
+                      break
+                    case '減算器':
+                      bindFile.write('Sub' + opNum)
+                      for (var j in useALU[i].node) {
+                        bindFile.write('\t' + useALU[i].node[j])
+                      }
+                      bindFile.write('\n')
+                      break
+                    case '乗算器':
+                      bindFile.write('Mul' + opNum)
+                      for (var j in useALU[i].node) {
+                        bindFile.write('\t' + useALU[i].node[j])
+                      }
+                      bindFile.write('\n')
+                      break
+                    case '除算器':
+                      bindFile.write('Div' + opNum)
+                      for (var j in useALU[i].node) {
+                        bindFile.write('\t' + useALU[i].node[j])
+                      }
+                      bindFile.write('\n')
+                      break
+                  }
+                }
+                bindFile.write('--exclusive block' + '\n')
+                bindFile.end()
+                resolve(props, "f1 ==> f2")
+              } catch (err) {
+                console.log(err)
               }
             })
-          } catch (err) {
-            console.log(err)
+            
+          }
+          
+          function f2 (props, passVal) {
+            return new Promise ((resolve, reject) => {
+              console.log(passVal)
+              ipcRenderer.send('vhdl')
+              ipcRenderer.on('end_vhdl', (event, result) => {
+                console.log(result)
+                if (result === 'Complete') {
+                  const __dirname = path.resolve()
+                  const cfPath = path.join(__dirname, 'noname/cf.dat')
+                  const cfFile = fs.createReadStream(cfPath, 'utf8')
+                  const cfLine = readLine.createInterface(cfFile, {})
+                  var separator = /\s+/
+                  var cf_node = false
+                  var cf_line = false
+                  var cn = [], cl1 = [], cl2 = [], cl3 = []
+                  cfLine.on('line', data => {
+                    console.log(data)
+                    var str = data.split(separator)
+                    if (str[0] === '--cadformat-node') {
+                      cf_node = true
+                      cf_line = false
+                    } else if (str[0] === '--cadformat-line') {
+                      cf_node = false
+                      cf_line = true
+                    } else if (str[0] === '--cadformat-end') {
+                      console.log(cn, cl1, cl2, cl3)
+                      props.calculateCFHandler(cn, cl1, cl2, cl3)
+                      resolve("f2")
+                    }
+                    else {
+                      if (cf_node) {
+                        cn.push(Number(str[0]))
+                      }
+                      if (cf_line) {
+                        cl1.push(Number(str[0]))
+                        cl2.push(Number(str[1]))
+                        cl3.push(Number(str[2]))
+                      }
+                    }
+                  })
+                }
+              })
+            })
+            
           }
         }
         break
@@ -342,7 +385,6 @@ export default class Tools extends Component {
   }
   startAlgoBind () {
     if (!this.state.isManualBind) {
-      const node = this.props.nodeInfo[this.props.selectTabId]
       const target = this.state.bindList.find((v) => v.name === this.state.algoBindValue)
       console.log(target)
       ipcRenderer.send('binding', target)

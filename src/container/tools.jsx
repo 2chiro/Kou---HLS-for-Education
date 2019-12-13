@@ -39,6 +39,9 @@ const mapDispatchToProps = dispatch => {
         },
         useRegAndALUHandler: (reg, useRegister, useALU) => {
             dispatch(Actions.useRegAndALU(reg, useRegister, useALU))
+        },
+        calculateCFHandler: (cn, cl1, cl2, cl3) => {
+            dispatch(Actions.calculateCF(cn, cl1, cl2, cl3))
         }
     }
 }

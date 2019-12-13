@@ -103,6 +103,15 @@ const Actions = {
             useRegister: useRegister,
             useALU: useALU
         }
+    },
+    calculateCF: (cn, cl1, cl2, cl3) => {
+        return {
+            type: 'CALCULATE_CF',
+            rtlNode: cn,
+            rtlLine1: cl1,
+            rtlLine2: cl2, 
+            rtlLine3: cl3
+        }
     }
 }
 

@@ -1444,13 +1444,14 @@ sub debug_cadformat {
 			print $fh "$cf_line_in[$_]	$cf_line_out[$_]	$cf_line_port[$_]	$cf_line_array_num[$_]\n";
 			print("$cf_line_in[$_]	$cf_line_out[$_]	$cf_line_port[$_]	$cf_line_array_num[$_]\n");
 		}
+		print $fh "--cadformat-end\n";
 		close $fh;
 
-		my $outputfile2 = $sdfg_input;
-		$outputfile2 =~ s/\.sdfg/\.report/;
-		my $file2 = $outputfile2;
-		open my $fh2, '>', $file2;
-		print $fh2 "マルチプレクサ		$mult_count\n";
-		print $fh2 "レジスタ		$resister_count\n";
-		close $fh2;
+		#my $outputfile2 = $sdfg_input;
+		#$outputfile2 =~ s/\.sdfg/\.report/;
+		#my $file2 = $outputfile2;
+		#open my $fh2, '>', $file2;
+		#print $fh2 "マルチプレクサ		$mult_count\n";
+		#print $fh2 "レジスタ		$resister_count\n";
+		#close $fh2;
 }
