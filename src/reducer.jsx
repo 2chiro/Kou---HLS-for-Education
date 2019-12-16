@@ -13,7 +13,11 @@ const initialState = {
             nodeEdge1: [], nodeEdge2: [], nodeEdgeType: [],
             startEdge: [], endEdge: [], doubleEdge: [],
             useRegister: [], registerX: [], registerY: [],
-            useALU: [], ALUValue: ''
+            useALU: [], ALUValue: '',
+            inputNode: [], inputX:[], inputY: 0,
+            outputNode: [], outputX: [], outputY: 0,
+            aluNode: [], aluX: [], aluY: 0,
+            regNode: [], regX: [], muxNode: [], muxX: [], muxY: 0
         }
     ]
 }
@@ -380,10 +384,8 @@ export default function reducer (state = initialState, action) {
             var rtlLine1 = action.rtlLine1
             var rtlLine2 = action.rtlLine2
             var rtlLine3 = action.rtlLine3
-            var aluX = [], aluY = 0
+
             var regX = []
-            var muxX = [], muxY = []
-            var inputX = [], inputY = 0
             var outputX = [], outputY = 0
 
             var input = 0, output = 0, reg = 0
@@ -417,57 +419,447 @@ export default function reducer (state = initialState, action) {
                 }
             }
 
-            var aluNode = []
-            var muxNode = []
+            var aluNode = new Array(add + sub + mult + div)
+            var aluX = new Array(add + sub + mult + div), aluY = 0
+            for (var i = 0; i < add + sub + mult + div; i++) {
+                aluNode[i] = new Array(2).fill(-1)
+            }
+            var muxNode = new Array(mux)
+            for (var i = 0; i < mux; i++) {
+                muxNode[i] = new Array(7).fill(-1)
+            }
+            var muxX = new Array(mux), muxY = new Array(mux)
+
             var regNode = []
-            var inputNode = []
+            var inputNode = new Array(input)
+            var inputX = new Array(input), inputY = 0
             var outputNode = []
 
-            var umax_n = 0, tmux_n = 0, mux_s = 0, in_s = 0;
+            var umux_n = 0, tmux_n = 0, mux_s = 0, in_s = 0;
 
             // レジスタ・マルチプレクサ・演算器相対配置
             var umux_x = 0, umux_y = -60, tmux_x = 0, tmux_y = 30
             var alu_x = 30, reg_x = 0, out_x = 0
-            var l = 0, z = 0
+            var k = 0
             for (var i in rtlLine1) {
                 // 下部（レジスター演算器間）
                 if (rtlNode[rtlLine2[i]] === 4 || rtlNode[rtlLine2[i]] === 5 || rtlNode[rtlLine2[i]] === 6 || rtlNode[rtlLine2[i]] === 7) {
-                   for (var j = i + 1; j < rtlLine1.length; j++) {
+                    for (var j = Number(i) + 1; j < rtlLine1.length; j++) {
                        if (rtlLine2[i] === rtlLine2[j]) {
-                            var alu = []
-                            alu.push(rtlNode[rtlLine2[i]])
-                            alu.push(rtlLine2[i])
-                            aluNode.push(alu)
-                            aluX.push(alu_x)
+                            aluNode[k][0] = rtlNode[rtlLine2[i]]
+                            aluNode[k][1] = rtlLine2[i]
+                            aluX[k] = alu_x
                             if (rtlNode[rtlLine1[i]] === 8) {
+                                var m = mux_s
                                 if (rtlLine3[i] === 1) {
-                                    muxX.push(umux_x)
-                                    muxY.push(umux_y)
-                                    if (umux_n < 1) {
-                                        umux_n = umux_n + 1
+                                    var umux_result = umux_alu(muxNode, muxX, muxY, mux_s, umux_n,
+                                        rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                                        i, umux_x, umux_y, 1, m, 1, rtlLine2[i])
+                                    function umux_alu (muxNode, muxX, muxY, mux_s, umux_n,
+                                        rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                                        i, x, y, u, s, p, h) {
+                                        var m = s;
+                                        muxX[m] = x;
+                                        muxY[m] = y;
+                                        if (u > umux_n) {
+                                            umux_n = umux_n + 1;
+                                        }
+                                        mux_s = mux_s + 1;
+                                        muxNode[m][0] = rtlLine1[i]
+                                        muxNode[m][3] = p;
+                                        muxNode[m][5] = u;
+                                        muxNode[m][6] = h;
+                                        for(var k = 0; k < rtlLine1.length; k++) {
+                                            var cl1_i = rtlLine1[i];
+                                            var cl2_k = rtlLine2[k];
+                                            if (cl1_i === cl2_k) {
+                                                if (rtlLine3[k] === 1) {
+                                                    muxNode[m][1] = rtlLine1[k];
+                                                } else {
+                                                    muxNode[m][2] = rtlLine1[k];
+                                                }
+                                                if (rtlNode[rtlLine1[k]] === 8) {
+                                                    muxNode[m][4] = 0;
+                                                    var ms = mux_s;
+                                                    var umux_result = umux_alu(muxNode, muxX, muxY, mux_s, umux_n,
+                                                        rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                                                        k, x, y - 40, u + 1 , ms, p, h);
+                                                    
+                                                    muxNode = umux_result.muxNode
+                                                    muxX = umux_result.muxX
+                                                    muxY = umux_result.muxY
+                                                    mux_s = umux_result.mux_s
+                                                    umux_n = umux_result.umux_n
+                                                    rtlNode = umux_result.rtlNode
+                                                    rtlLine1 = umux_result.rtlLine1
+                                                    rtlLine2 = umux_result.rtlLine2
+                                                    rtlLine3 = umux_result.rtlLine3
+                                                } else {
+                                                    muxNode[m][4] = 1;
+                                                }
+                                            }
+                                        }
+                                        return {
+                                            muxNode, muxX, muxY, mux_s, umux_n,
+                                            rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                                        }
                                     }
-                                    mux_s = mux_s + 1
-                                    
-                                    umux_alu(i, umux_x, umux_y, 1, m, 1, rtlLine2[i])
+                                    muxNode = umux_result.muxNode
+                                    muxX = umux_result.muxX
+                                    muxY = umux_result.muxY
+                                    mux_s = umux_result.mux_s
+                                    umux_n = umux_result.umux_n
+                                    rtlNode = umux_result.rtlNode
+                                    rtlLine1 = umux_result.rtlLine1
+                                    rtlLine2 = umux_result.rtlLine2
+                                    rtlLine3 = umux_result.rtlLine3
                                 } else {
-                                    umux_alu(i, umux_x + 60, umux_y, 1, m, 2, rtlLine2[i])
+                                    var umux_result = umux_alu(muxNode, muxX, muxY, mux_s, umux_n,
+                                        rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                                        i, umux_x + 60, umux_y, 1, m, 2, rtlLine2[i])
+                                    function umux_alu (muxNode, muxX, muxY, mux_s, umux_n,
+                                        rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                                        i, x, y, u, s, p, h) {
+                                        var m = s;
+                                        muxX[m] = x;
+                                        muxY[m] = y;
+                                        if (u > umux_n) {
+                                            umux_n = umux_n + 1;
+                                        }
+                                        mux_s = mux_s + 1;
+                                        muxNode[m][0] = rtlLine1[i]
+                                        muxNode[m][3] = p;
+                                        muxNode[m][5] = u;
+                                        muxNode[m][6] = h;
+                                        for(var k = 0; k < rtlLine1.length; k++) {
+                                            var cl1_i = rtlLine1[i];
+                                            var cl2_k = rtlLine2[k];
+                                            if (cl1_i === cl2_k) {
+                                                if (rtlLine3[k] === 1) {
+                                                    muxNode[m][1] = rtlLine1[k];
+                                                } else {
+                                                    muxNode[m][2] = rtlLine1[k];
+                                                }
+                                                if (rtlNode[rtlLine1[k]] === 8) {
+                                                    muxNode[m][4] = 0;
+                                                    var ms = mux_s;
+                                                    var umux_result = umux_alu(muxNode, muxX, muxY, mux_s, umux_n,
+                                                        rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                                                        k, x, y - 40, u + 1 , ms, p, h);
+                                                    
+                                                    muxNode = umux_result.muxNode
+                                                    muxX = umux_result.muxX
+                                                    muxY = umux_result.muxY
+                                                    mux_s = umux_result.mux_s
+                                                    umux_n = umux_result.umux_n
+                                                    rtlNode = umux_result.rtlNode
+                                                    rtlLine1 = umux_result.rtlLine1
+                                                    rtlLine2 = umux_result.rtlLine2
+                                                    rtlLine3 = umux_result.rtlLine3
+                                                } else {
+                                                    muxNode[m][4] = 1;
+                                                }
+                                            }
+                                        }
+                                        return {
+                                            muxNode, muxX, muxY, mux_s, umux_n,
+                                            rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                                        }
+                                    }
+                                    muxNode = umux_result.muxNode
+                                    muxX = umux_result.muxX
+                                    muxY = umux_result.muxY
+                                    mux_s = umux_result.mux_s
+                                    umux_n = umux_result.umux_n
+                                    rtlNode = umux_result.rtlNode
+                                    rtlLine1 = umux_result.rtlLine1
+                                    rtlLine2 = umux_result.rtlLine2
+                                    rtlLine3 = umux_result.rtlLine3
                                 }
                             }
                             if (rtlNode[rtlLine1[j]] === 8) {
                                 var m = mux_s
                                 if (rtlLine3[j] === 2) {
-                                    umux_alu(j, umux_x + 60, umux_y, 1, m, 2, rtlLine2[i])
+                                    var umux_result = umux_alu(muxNode, muxX, muxY, mux_s, umux_n,
+                                        rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                                        j, umux_x + 60, umux_y, 1, m, 2, rtlLine2[i])
+                                    function umux_alu (muxNode, muxX, muxY, mux_s, umux_n,
+                                        rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                                        i, x, y, u, s, p, h) {
+                                        var m = s;
+                                        muxX[m] = x;
+                                        muxY[m] = y;
+                                        if (u > umux_n) {
+                                            umux_n = umux_n + 1;
+                                        }
+                                        mux_s = mux_s + 1;
+                                        muxNode[m][0] = rtlLine1[i]
+                                        muxNode[m][3] = p;
+                                        muxNode[m][5] = u;
+                                        muxNode[m][6] = h;
+                                        for(var k = 0; k < rtlLine1.length; k++) {
+                                            var cl1_i = rtlLine1[i];
+                                            var cl2_k = rtlLine2[k];
+                                            if (cl1_i === cl2_k) {
+                                                if (rtlLine3[k] === 1) {
+                                                    muxNode[m][1] = rtlLine1[k];
+                                                } else {
+                                                    muxNode[m][2] = rtlLine1[k];
+                                                }
+                                                if (rtlNode[rtlLine1[k]] === 8) {
+                                                    muxNode[m][4] = 0;
+                                                    var ms = mux_s;
+                                                    var umux_result = umux_alu(muxNode, muxX, muxY, mux_s, umux_n,
+                                                        rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                                                        k, x, y - 40, u + 1 , ms, p, h);
+                                                    
+                                                    muxNode = umux_result.muxNode
+                                                    muxX = umux_result.muxX
+                                                    muxY = umux_result.muxY
+                                                    mux_s = umux_result.mux_s
+                                                    umux_n = umux_result.umux_n
+                                                    rtlNode = umux_result.rtlNode
+                                                    rtlLine1 = umux_result.rtlLine1
+                                                    rtlLine2 = umux_result.rtlLine2
+                                                    rtlLine3 = umux_result.rtlLine3
+                                                } else {
+                                                    muxNode[m][4] = 1;
+                                                }
+                                            }
+                                        }
+                                        return {
+                                            muxNode, muxX, muxY, mux_s, umux_n,
+                                            rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                                        }
+                                    }
+                                    muxNode = umux_result.muxNode
+                                    muxX = umux_result.muxX
+                                    muxY = umux_result.muxY
+                                    mux_s = umux_result.mux_s
+                                    umux_n = umux_result.umux_n
+                                    rtlNode = umux_result.rtlNode
+                                    rtlLine1 = umux_result.rtlLine1
+                                    rtlLine2 = umux_result.rtlLine2
+                                    rtlLine3 = umux_result.rtlLine3
                                 } else {
-                                    umux_alu(j, umux_x, umux_y, 1, m, 1, rtlLine2[i])
+                                    var umux_result = umux_alu(muxNode, muxX, muxY, mux_s, umux_n,
+                                        rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                                        j, umux_x, umux_y, 1, m, 1, rtlLine2[i])
+                                    function umux_alu (muxNode, muxX, muxY, mux_s, umux_n,
+                                        rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                                        i, x, y, u, s, p, h) {
+                                        var m = s;
+                                        muxX[m] = x;
+                                        muxY[m] = y;
+                                        if (u > umux_n) {
+                                            umux_n = umux_n + 1;
+                                        }
+                                        mux_s = mux_s + 1;
+                                        muxNode[m][0] = rtlLine1[i]
+                                        muxNode[m][3] = p;
+                                        muxNode[m][5] = u;
+                                        muxNode[m][6] = h;
+                                        for(var k = 0; k < rtlLine1.length; k++) {
+                                            var cl1_i = rtlLine1[i];
+                                            var cl2_k = rtlLine2[k];
+                                            if (cl1_i === cl2_k) {
+                                                if (rtlLine3[k] === 1) {
+                                                    muxNode[m][1] = rtlLine1[k];
+                                                } else {
+                                                    muxNode[m][2] = rtlLine1[k];
+                                                }
+                                                if (rtlNode[rtlLine1[k]] === 8) {
+                                                    muxNode[m][4] = 0;
+                                                    var ms = mux_s;
+                                                    var umux_result = umux_alu(muxNode, muxX, muxY, mux_s, umux_n,
+                                                        rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                                                        k, x, y - 40, u + 1 , ms, p, h);
+                                                    
+                                                    muxNode = umux_result.muxNode
+                                                    muxX = umux_result.muxX
+                                                    muxY = umux_result.muxY
+                                                    mux_s = umux_result.mux_s
+                                                    umux_n = umux_result.umux_n
+                                                    rtlNode = umux_result.rtlNode
+                                                    rtlLine1 = umux_result.rtlLine1
+                                                    rtlLine2 = umux_result.rtlLine2
+                                                    rtlLine3 = umux_result.rtlLine3
+                                                } else {
+                                                    muxNode[m][4] = 1;
+                                                }
+                                            }
+                                        }
+                                        return {
+                                            muxNode, muxX, muxY, mux_s, umux_n,
+                                            rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                                        }
+                                    }
+                                    muxNode = umux_result.muxNode
+                                    muxX = umux_result.muxX
+                                    muxY = umux_result.muxY
+                                    mux_s = umux_result.mux_s
+                                    umux_n = umux_result.umux_n
+                                    rtlNode = umux_result.rtlNode
+                                    rtlLine1 = umux_result.rtlLine1
+                                    rtlLine2 = umux_result.rtlLine2
+                                    rtlLine3 = umux_result.rtlLine3
                                 }
                             }
                             umux_x = umux_x + 150
-                            cul_x = culx + 150
+                            alu_x = alu_x + 150
+                            k = k + 1
                        }
-                   } 
+                    } 
+                }
+                //上部（入力・演算器ーレジスタ間）
+                if (rtlNode[rtlLine2[i]] === 3) {
+                    regNode.push(rtlLine2[i])
+                    regX.push(reg_x)
+                    if (rtlNode[rtlLine1[i]] === 8) {
+                        var m = mux_s
+                        var tmux_result = tmux_alu(muxNode, muxX, muxY, mux_s, tmux_n,
+                            inputNode, inputX, in_s,
+                            rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                            i, tmux_x, tmux_y, 1, m)
+                        function tmux_alu (muxNode, muxX, muxY, mux_s, tmux_n,
+                            inputNode, inputX, in_s,
+                            rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                            i, x, y, t, s) {
+                            var m = s;
+                            muxX[m] = x;
+                            muxY[m] = y;
+                            if (t > tmux_n) {
+                                tmux_n = tmux_n + 1;
+                            }
+                            mux_s = mux_s + 1;
+                            muxNode[m][0] = rtlLine1[i];
+                            muxNode[m][3] = 3;
+                            muxNode[m][5] = t;
+                            for (var k = 0; k < rtlLine1.length; k++) {
+                                var cl1_i = rtlLine1[i];
+                                var cl2_k = rtlLine2[k];
+                                if (cl1_i === cl2_k) {
+                                    if (rtlLine3[k] === 1) {
+                                        muxNode[m][1] = rtlLine1[k];
+                                    } else {
+                                        muxNode[m][2] = rtlLine1[k];
+                                    }
+                                    if (rtlNode[rtlLine1[k]] === 8) {
+                                        muxNode[m][4] = 0;
+                                        var ms = mux_s;
+                                        var tmux_result = tmux_alu(muxNode, muxX, muxY, mux_s, tmux_n,
+                                            inputNode, inputX, in_s,
+                                            rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                                            k, x, y + 40, t + 1, ms);
+                                        muxNode = tmux_result.muxNode
+                                        muxX = tmux_result.muxX
+                                        muxY = tmux_result.muxY
+                                        mux_s = tmux_result.mux_s
+                                        tmux_n = tmux_result.tmux_n
+                                        inputNode = tmux_result.inputNode
+                                        inputX = tmux_result.inputX
+                                        in_s = tmux_result.in_s
+                                        rtlNode = tmux_result.rtlNode
+                                        rtlLine1 = tmux_result.rtlLine1
+                                        rtlLine2 = tmux_result.rtlLine2
+                                        rtlLine3 = tmux_result.rtlLine3
+                                    } else if (rtlNode[rtlLine1[k]] === 1) {
+                                        var ns = in_s;
+                                        inputX[ns] = x;
+                                        inputNode[ns] = rtlLine1[k];
+                                        in_s = in_s + 1;
+                                        muxNode[m][4] = 1;
+                                    } else {
+                                        muxNode[m][4] = 1;
+                                    }
+                                }
+                            }
+                            return {
+                                muxNode, muxX, muxY, mux_s, tmux_n,
+                                inputNode, inputX, in_s,
+                                rtlNode, rtlLine1, rtlLine2, rtlLine3,
+                            }
+                        }
+                        muxNode = tmux_result.muxNode
+                        muxX = tmux_result.muxX
+                        muxY = tmux_result.muxY
+                        mux_s = tmux_result.mux_s
+                        tmux_n = tmux_result.tmux_n
+                        inputNode = tmux_result.inputNode
+                        inputX = tmux_result.inputX
+                        in_s = tmux_result.in_s
+                        rtlNode = tmux_result.rtlNode
+                        rtlLine1 = tmux_result.rtlLine1
+                        rtlLine2 = tmux_result.rtlLine2
+                        rtlLine3 = tmux_result.rtlLine3
+                    } else if (rtlNode[rtlLine1[i]] === 1) {
+                        var s = in_s;
+                        inputX[s] = tmux_x
+                        inputNode[s] = rtlLine1[i]
+                        in_s = in_s + 1
+                    }
+                    tmux_x = tmux_x + 75
+                    reg_x = reg_x + 75
+                }
+                // 出力
+                if (rtlNode[rtlLine2[i]] === 2) {
+                    outputNode.push(rtlLine2[i])
+                    outputX.push(out_x)
+                    out_x = out_x + 20
                 }
             }
+            /*
+            console.log("相対配置")
+            console.log("inputNode:", inputNode, "inputX:", inputX)
+            console.log("outputNode:", outputNode, "outputX:", outputX)
+            console.log("aluNode:", aluNode, "aluX:", aluX)
+            console.log("regNode:", regNode, "regX:", regX)
+            console.log("muxNode:", muxNode, "muxX:", muxX, "muxY:", muxY)
+            */
 
+            //演算器絶対配置
+		    aluY = 20 + reg * 20 + 400 + umux_n * 80 + 120;
+
+		    //マルチプレクサ絶対配置
+		    for (var i = 0; i < mux; i++) {
+			    if (muxY[i] < 0) {
+                    muxY[i] = muxY[i] + aluY;
+			    } else {
+				    muxY[i] = - muxY[i];
+			    }
+		    }
+
+		    //入力絶対配置
+		    inputY = -40 - 80 * tmux_n - (add + sub + mult + div) * 20 - 50;
+
+		    //出力絶対配置
+		    var out_x2 = reg * 150 + 30;
+		    outputY = reg * 20 + 50;
+		    for (var i = 0; i < output; i++) {
+			    outputX[i] = outputX[i] + out_x2;
+            }
+            
+            console.log("絶対配置")
+            console.log("inputNode:", inputNode, "inputX:", inputX, "inputY:", inputY)
+            console.log("outputNode:", outputNode, "outputX:", outputX, "outputY:", outputY)
+            console.log("aluNode:", aluNode, "aluX:", aluX, "aluY:", aluY)
+            console.log("regNode:", regNode, "regX:", regX)
+            console.log("muxNode:", muxNode, "muxX:", muxX, "muxY:", muxY)
+
+            node.inputNode = inputNode
+            node.inputX = inputX
+            node.inputY = inputY
+            node.outputNode = outputNode
+            node.outputX = outputX
+            node.outputY = outputY
+            node.aluNode = aluNode
+            node.aluX = aluX
+            node.aluY = aluY
+            node.regNode = regNode
+            node.regX = regX
+            node.muxNode = muxNode
+            node.muxX = muxX
+            node.muxY = muxY
             
             return {
                 ...state,

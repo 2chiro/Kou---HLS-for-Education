@@ -205,7 +205,7 @@ export default class Tools extends Component {
                     }
                     else {
                       if (cf_node) {
-                        cn.push(Number(str[0]))
+                        cn.push(Number(str[1]))
                       }
                       if (cf_line) {
                         cl1.push(Number(str[0]))
