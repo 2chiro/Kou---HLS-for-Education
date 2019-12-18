@@ -17,7 +17,9 @@ const initialState = {
             inputNode: [], inputX:[], inputY: 0,
             outputNode: [], outputX: [], outputY: 0,
             aluNode: [], aluX: [], aluY: 0,
-            regNode: [], regX: [], muxNode: [], muxX: [], muxY: 0
+            regNode: [], regX: [], muxNode: [], muxX: [], muxY: 0,
+            rtlNode: [], rtlLine1: [], rtlLine2: [], rtlLine3: [],
+            tmux: 0
         }
     ]
 }
@@ -818,7 +820,7 @@ export default function reducer (state = initialState, action) {
             */
 
             //演算器絶対配置
-		    aluY = 20 + reg * 20 + 400 + umux_n * 80 + 120;
+		    aluY = 10 + reg * 10 + 200 + umux_n * 40 + 60;
 
 		    //マルチプレクサ絶対配置
 		    for (var i = 0; i < mux; i++) {
@@ -830,11 +832,11 @@ export default function reducer (state = initialState, action) {
 		    }
 
 		    //入力絶対配置
-		    inputY = -40 - 80 * tmux_n - (add + sub + mult + div) * 20 - 50;
+		    inputY = -20 - 40 * tmux_n - (add + sub + mult + div) * 10 - 25;
 
 		    //出力絶対配置
-		    var out_x2 = reg * 150 + 30;
-		    outputY = reg * 20 + 50;
+		    var out_x2 = reg * 75 + 15;
+		    outputY = reg * 10 + 25;
 		    for (var i = 0; i < output; i++) {
 			    outputX[i] = outputX[i] + out_x2;
             }
@@ -860,6 +862,13 @@ export default function reducer (state = initialState, action) {
             node.muxNode = muxNode
             node.muxX = muxX
             node.muxY = muxY
+
+            node.rtlNode = rtlNode
+            node.rtlLine1 = rtlLine1
+            node.rtlLine2 = rtlLine2
+            node.rtlLine3 = rtlLine3
+
+            node.tmux = tmux_n
             
             return {
                 ...state,

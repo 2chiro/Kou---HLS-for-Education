@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React, {Component, createContext} from 'react'
 
 export default class Canvas extends Component {
   constructor (props) {
@@ -53,6 +53,26 @@ export default class Canvas extends Component {
     const ALUValue = nodeInfo.ALUValue
     var targetALUNode = []
 
+    const inputNode = nodeInfo.inputNode
+    const inputX = nodeInfo.inputX
+    const inputY = nodeInfo.inputY
+    const outputNode = nodeInfo.outputNode
+    const outputX = nodeInfo.outputX
+    const outputY = nodeInfo.outputY
+    const aluNode = nodeInfo.aluNode
+    const aluX = nodeInfo.aluX
+    const aluY = nodeInfo.aluY
+    const regNode = nodeInfo.regNode
+    const regX = nodeInfo.regX
+    const muxNode = nodeInfo.muxNode
+    const muxX = nodeInfo.muxX
+    const muxY = nodeInfo.muxY
+    const rtlNode = nodeInfo.rtlNode
+    const rtlLine1 = nodeInfo.rtlLine1
+    const rtlLine2 = nodeInfo.rtlLine2
+    const rtlLine3 = nodeInfo.rtlLine3
+    const tmux = nodeInfo.tmux
+
     for (var i in useALU) {
       if (useALU[i].name === ALUValue) {
         targetALUNode = useALU[i].node
@@ -103,358 +123,803 @@ export default class Canvas extends Component {
       }
     }
 
-    // ポート選択描画
-    if (this.state.selectEdge) {
-      ctx.lineWidth = "2px"
-      ctx.beginPath()
-      ctx.moveTo(this.state.mouse_x, this.state.mouse_y)
-      switch (this.state.selectEdgeStore[1]) {
-        case 0:
-          ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y + 35) * ratio)
-          break
-        case 1:
-          ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x - 20) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y - 35) * ratio)
-          break
-        case 2:
-          ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x + 20) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y - 35) * ratio)
-          break
-        case 3:
-          ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y - 35) * ratio)
-          break
+    // RTL描画
+    if (this.props.id === 4) {
+      // 演算器描画
+      for (var i in aluNode) {
+        var x = (aluX[i] - this.state.origin_x) * ratio
+        var y = (aluY - this.state.origin_y) * ratio
+        ctx.lineWidth = "2px"
+        ctx.strokeStyle = "rgb(0, 0, 0)"
+        ctx.lineWidth = "2px"
+        ctx.beginPath()
+        ctx.moveTo(x + (-45 * ratio), y)
+        ctx.lineTo(x + (45 * ratio), y)
+        ctx.lineTo(x + (60 * ratio), y + (-45 * ratio))
+        ctx.lineTo(x + (9 * ratio), y + (-45 * ratio))
+        ctx.lineTo(x, y + (-30 * ratio))
+        ctx.lineTo(x + (-9 * ratio), y + (-45 * ratio))
+        ctx.lineTo(x + (-60 * ratio), y + (-45 * ratio))
+        ctx.lineTo(x + (-45 * ratio), y)
+        ctx.closePath()
+        ctx.stroke()
+        ctx.fillStyle = "rgb(0, 0, 0)"
+        ctx.font = 24 * ratio + "px sans-serif"
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        switch (aluNode[i][0]) {
+          case 4:
+            ctx.fillText("＋", x, y + (-15 * ratio))
+            break
+          case 5:
+            ctx.fillText("－", x, y + (-15 * ratio))
+            break
+          case 6:
+            ctx.fillText("×", x, y + (-15 * ratio))
+            break
+          case 7:
+            ctx.fillText("÷", x, y + (-15 * ratio))
+            break
+        }
       }
-      ctx.closePath()
-      ctx.stroke()
+      // レジスタ描画
+      for (var i in regNode) {
+        var x = (regX[i] - this.state.origin_x) * ratio
+        var y = -this.state.origin_y * ratio
+        ctx.beginPath()
+        ctx.moveTo(x + (-20 * ratio), y)
+        ctx.lineTo(x + (20 * ratio), y)
+        ctx.lineTo(x + (20 * ratio), y + (-20 * ratio))
+        ctx.lineTo(x + (-20 * ratio), y + (-20 * ratio))
+        ctx.lineTo(x + (-20 * ratio), y)
+        ctx.closePath()
+        ctx.stroke()
+        ctx.font = 12 * ratio + "px sans-serif"
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText("R" + i, x, y + (-12 * ratio))
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x, ((Number(i) + 1) * 10 - this.state.origin_y) * ratio)
+        ctx.closePath()
+        ctx.stroke()
+      }
+      // マルチプレクサ描画
+      for (var i in muxNode) {
+        var x = (muxX[i] - this.state.origin_x) * ratio
+        var y = (muxY[i] - this.state.origin_y) * ratio
+        ctx.beginPath()
+        ctx.moveTo(x + (-22.5 * ratio), y + (-30 * ratio))
+        ctx.lineTo(x + (22.5 * ratio), y + (-30 * ratio))
+        ctx.lineTo(x + (15 * ratio), y + (-15 * ratio))
+        ctx.lineTo(x + (-15 * ratio), y + (-15 * ratio))
+        ctx.lineTo(x + (-22.5 * ratio), y + (-30 * ratio))
+        ctx.closePath()
+        ctx.stroke()
+      }
+      // 接続線
+      for (var i in rtlNode) {
+        switch (rtlNode[rtlLine1[i]]) {
+          case 1:
+            for (var j in inputNode) {
+              if (inputNode[j] === rtlLine1[i]) {
+                if (rtlNode[rtlLine2[i]] === 3) {
+                  for (var k in regNode) {
+                    if (regNode[k] === rtlLine2[i]) {
+                      ctx.beginPath()
+                      ctx.moveTo((inputX[j] - this.state.origin_x) * ratio, (inputY - this.state.origin_y) * ratio)
+                      ctx.lineTo((regX[k] - this.state.origin_x) * ratio, (-20 - this.state.origin_y) * ratio)
+                      ctx.stroke()
+                      break
+                    }
+                  }
+                }
+                if (rtlNode[rtlLine2[i]] === 8) {
+                  for (var k in muxNode) {
+                    if (muxNode[k][0] === rtlLine2[i]) {
+                      if (muxNode[k][1] === rtlLine1[i]) {
+                        ctx.beginPath()
+                        ctx.moveTo((inputX[j] - 10 - this.state.origin_x) * ratio, (inputY - this.state.origin_y) * ratio)
+                        ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
+                        ctx.stroke()
+                        break
+                      } else {
+                        ctx.beginPath()
+                        ctx.moveTo((inputX[j] + 10 - this.state.origin_x) * ratio, (inputY - this.state.origin_y) * ratio)
+                        ctx.lineTo((inputX[k] + 10 - this.state.origin_x) * ratio, (muxY[k] - 40 - this.state.origin_y) * ratio)
+                        ctx.lineTo((muxX[k] + 10 - this.state.origin_x) * ratio, (muxY[k] - 40 - this.state.origin_y) * ratio)
+                        ctx.lineTo((muxX[k] + 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
+                        ctx.stroke()
+                        break
+                      }
+                    }
+                  }
+                }
+                break
+              }
+            }
+            break
+          case 3:
+            for (var j in regNode) {
+              if (regNode[j] === rtlLine1[i]) {
+                if (rtlNode[rtlLine2[i]] === 2) {
+                  for (var k in outputNode) {
+                    if (outputNode[k] === rtlLine2[i]) {
+                      ctx.beginPath()
+                      ctx.arc((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                      ctx.fill()
+                      ctx.beginPath()
+                      ctx.moveTo((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                      ctx.lineTo((outputX[k] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                      ctx.lineTo((outputX[k] - this.state.origin_x) * ratio, (outputY - this.state.origin_y) * ratio)
+                      ctx.stroke()
+                      break
+                    }
+                  }
+                }
+                if (rtlNode[rtlLine2[i]] === 4 || rtlNode[rtlLine2[i]] === 5 || rtlNode[rtlLine2[i]] === 6 || rtlNode[rtlLine2[i]] === 7) {
+                  for (var k in aluNode) {
+                    if (aluNode[k][1] === rtlLine2[i]) {
+                      if (rtlLine3[i] === 1) {
+                        if (regX[j] != aluX[k] - 30) {
+                          ctx.beginPath()
+                          ctx.arc((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                          ctx.fill()
+                          ctx.beginPath()
+                          ctx.arc((aluX[k] - 30 - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                          ctx.fill()
+                        }
+                        ctx.beginPath()
+                        ctx.moveTo((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                        ctx.lineTo((aluX[k] - 30 - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                        ctx.lineTo((aluX[k] - 30 - this.state.origin_x) * ratio, (aluY - 45 - this.state.origin_y) * ratio)
+                        ctx.stroke()
+                        break
+                      }
+                      if (rtlLine3[i] === 2) {
+                        if (regX[j] != aluX[k] + 30) {
+                          ctx.beginPath()
+                          ctx.arc((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                          ctx.fill()
+                          ctx.beginPath()
+                          ctx.arc((aluX[k] + 30 - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                          ctx.fill()
+                        }
+                        ctx.beginPath()
+                        ctx.moveTo((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                        ctx.lineTo((aluX[k] + 30 - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                        ctx.lineTo((aluX[k] + 30 - this.state.origin_x) * ratio, (aluY - 45 - this.state.origin_y) * ratio)
+                        ctx.stroke()
+                        break
+                      }
+                    }
+                  }
+                }
+                if (rtlNode[rtlLine2[i]] === 8) {
+                  for (var k in muxNode) {
+                    if (muxNode[k][0] === rtlLine2[i]) {
+                      if (muxNode[k][1] === rtlLine1[i]) {
+                        if (muxNode[k][4] === 1) {
+                          if (regX[j] != muxX[k] - 10) {
+                            ctx.beginPath()
+                            ctx.arc((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                            ctx.fill()
+                            ctx.beginPath()
+                            ctx.arc((muxX[k] - 10 - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                            ctx.fill()
+                          }
+                          ctx.beginPath()
+                          ctx.moveTo((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                          ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                          ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
+                          ctx.stroke()
+                          break
+                        } else {
+                          if (muxNode[k][3] === 1) {
+                            if (regX[j] != muxX[k] - 30 - (muxNode[k][5] - 1) * 5) {
+                              ctx.beginPath()
+                              ctx.arc((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                              ctx.fill()
+                              ctx.beginPath()
+                              ctx.arc((muxX[k] - 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                              ctx.fill()
+                            }
+                            ctx.beginPath()
+                            ctx.moveTo((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] - 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] - 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] + 10 - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] + 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
+                            ctx.stroke()
+                            break
+                          } else {
+                            if (regX[j] != muxX[k] + 30 - (muxNode[k][5] - 1) * 5) {
+                              ctx.beginPath()
+                              ctx.arc((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                              ctx.fill()
+                              ctx.beginPath((muxX[k] + 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                              ctx.moveTo()
+                            }
+                            ctx.beginPath()
+                            ctx.moveTo((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] + 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] + 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
+                            ctx.stroke()
+                            break
+                          }
+                        }
+                      }
+                      if (muxNode[k][2] === rtlLine1[i]) {
+                        if (muxNode[k][4] === 1) {
+                          if (regX[j] != muxX[k] + 10) {
+                            ctx.beginPath()
+                            ctx.arc((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                            ctx.fill()
+                            ctx.beginPath()
+                            ctx.arc((muxX[k] + 10 - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                            ctx.fill()
+                          }
+                          ctx.beginPath()
+                          ctx.moveTo((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                          ctx.lineTo((muxX[k] + 10 - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                          ctx.lineTo((muxX[k] + 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
+                          ctx.stroke()
+                          break
+                        } else {
+                          if (muxNode[k][3] === 1) {
+                            if (regX[j] != muxX[k] - 30 - (muxNode[k][5] - 1) * 5) {
+                              ctx.beginPath()
+                              ctx.arc((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                              ctx.fill()
+                              ctx.beginPath((muxX[k] - 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                              ctx.moveTo()
+                            }
+                            ctx.beginPath()
+                            ctx.moveTo((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] - 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] - 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] + 10 - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] + 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
+                            ctx.stroke()
+                            break
+                          } else {
+                            if (regX[j] != muxX[k] + 30 - (muxNode[k][5] - 1) * 5) {
+                              ctx.beginPath()
+                              ctx.arc((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                              ctx.fill()
+                              ctx.beginPath((muxX[k] + 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                              ctx.moveTo()
+                            }
+                            ctx.beginPath()
+                            ctx.moveTo((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] + 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] + 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
+                            ctx.stroke()
+                            break
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            break
+          case 4:
+          case 5:
+          case 6:
+          case 7:
+            for (var j in aluNode) {
+              if (aluNode[j][1] === rtlLine1[i]) {
+                if (rtlNode[rtlLine2[i]] === 8) {
+                  for (var k in muxNode) {
+                    if (muxNode[k][0] === rtlLine2[i]) {
+                      if (muxNode[k][1] === rtlLine1[i]) {
+                        ctx.beginPath()
+                        ctx.moveTo((aluX[j] - this.state.origin_x) * ratio, (aluY - this.state.origin_y) * ratio)
+                        ctx.lineTo((aluX[j] - this.state.origin_x) * ratio, (aluY + ((Number(j) + 1) * 10 + 15) - this.state.origin_y) * ratio)
+                        ctx.lineTo((-(Number(j) + 1) * 10 - 50 - this.state.origin_x) * ratio, (aluY + ((Number(j) + 1) * 10 + 15) - this.state.origin_y) * ratio)
+                        ctx.lineTo((-(Number(j) + 1) * 10 - 50 - this.state.origin_x) * ratio, (-20 - 40 * tmux - (Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                        ctx.stroke()
+                        if (muxNode[k][4] === 1) {
+                          ctx.beginPath()
+                          ctx.arc((muxX[k] - 10 - this.state.origin_x) * ratio, (-20 - 40 * tmux - (Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                          ctx.fill()
+                          ctx.beginPath()
+                          ctx.moveTo((-(Number(j) + 1) * 10 - 50 - this.state.origin_x) * ratio, (-20 - 40 * tmux - (Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                          ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (-20 - 40 * tmux - (Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                          ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
+                          ctx.stroke()
+                        } else {
+                          ctx.beginPath()
+                          ctx.arc((muxX[k] - 30 - this.state.origin_x) * ratio, (-20 - 40 * tmux - (Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                          ctx.fill()
+                          ctx.beginPath()
+                          ctx.moveTo((-(Number(j) + 1) * 10 - 50 - this.state.origin_x) * ratio, (-20 - 40 * tmux - (Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                          ctx.lineTo((muxX[k] - 30 - (muxNode[k][5] - 1) * 5 - this.state.origin_x) * ratio, (-20 - 40 * tmux - (Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                          ctx.lineTo((muxX[k] - 30 - (muxNode[k][5] - 1) * 5 - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
+                          ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
+                          ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
+                          ctx.stroke()
+                        }
+                        break
+                      }
+                      if (muxNode[k][2] === rtlLine1[i]) {
+                        ctx.beginPath()
+                        ctx.moveTo((aluX[j] - this.state.origin_x) * ratio, (aluY - this.state.origin_y) * ratio)
+                        ctx.lineTo((aluX[j] - this.state.origin_x) * ratio, (aluY + ((Number(j) + 1) * 10 + 15) - this.state.origin_y) * ratio)
+                        ctx.lineTo((-(Number(j) + 1) * 10 - 50 - this.state.origin_x) * ratio, (aluY + ((Number(j) + 1) * 10 + 15) - this.state.origin_y) * ratio)
+                        ctx.lineTo((-(Number(j) + 1) * 10 - 50 - this.state.origin_x) * ratio, (-20 - 40 * tmux - (Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                        ctx.stroke()
+                        if (muxNode[k][4] === 1) {
+                          ctx.beginPath()
+                          ctx.arc((muxX[k] + 10 - this.state.origin_x) * ratio, (-20 - 40 * tmux - (Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                          ctx.fill()
+                          ctx.beginPath()
+                          ctx.moveTo((-(Number(j) + 1) * 10 - 50 - this.state.origin_x) * ratio, (-20 - 40 * tmux - (Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                          ctx.lineTo((muxX[k] + 10 - this.state.origin_x) * ratio, (-20 - 40 * tmux - (Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                          ctx.lineTo((muxX[k] + 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
+                          ctx.stroke()
+                        } else {
+                          ctx.beginPath()
+                          ctx.arc((muxX[k] - 30 - this.state.origin_x) * ratio, (-20 - 40 * tmux - (Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                          ctx.fill()
+                          ctx.beginPath()
+                          ctx.moveTo((-(Number(j) + 1) * 10 - 50 - this.state.origin_x) * ratio, (-20 - 40 * tmux - (Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                          ctx.lineTo((muxX[k] - 30 - (muxNode[k][5] - 1) * 5 - this.state.origin_x) * ratio, (-20 - 40 * tmux - (Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                          ctx.lineTo((muxX[k] - 30 - (muxNode[k][5] - 1) * 5 - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
+                          ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
+                          ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
+                          ctx.stroke()
+                        }
+                        break
+                      }
+                    }
+                  }
+                }
+                if (rtlNode[rtlLine2[i]] === 3) {
+                  for (var k in regNode) {
+                    if (regNode[k] === rtlLine2[i]) {
+                      ctx.beginPath()
+                      ctx.arc((regX[k] - this.state.origin_x) * ratio, (-20 - 40 * tmux - (Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                      ctx.fill()
+                      ctx.beginPath()
+                      ctx.moveTo((aluX[j] - this.state.origin_x) * ratio, (aluY - this.state.origin_y) * ratio)
+                      ctx.lineTo((aluX[j] - this.state.origin_x) * ratio, (aluY + ((Number(j) + 1) * 10 + 15) - this.state.origin_y) * ratio)
+                      ctx.lineTo((-(Number(j) + 1) * 10 - 50 - this.state.origin_x) * ratio, (aluY + ((Number(j) + 1) * 10 + 15) - this.state.origin_y) * ratio)
+                      ctx.lineTo((-(Number(j) + 1) * 10 - 50 - this.state.origin_x) * ratio, (-20 - 40 * tmux - (Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                      ctx.lineTo((regX[k] - this.state.origin_x) * ratio, (-20 - 40 * tmux - (Number(j) + 1) * 10 - this.state.origin_y) * ratio)
+                      ctx.lineTo((regX[k] - this.state.origin_x) * ratio, (-20 - this.state.origin_y) * ratio)
+                      ctx.stroke()
+                      break
+                    }
+                  }
+                }
+              }
+            }
+            break
+          case 8:
+            for (var j in muxNode) {
+              if (muxNode[j][0] === rtlLine1[i]) {
+                if (rtlNode[rtlLine2[i]] === 8) {
+                  for (var k in muxNode) {
+                    if (muxNode[k][0] === rtlLine2[i]) {
+                      if (muxNode[k][1] === rtlLine1[i]) {
+                        ctx.beginPath()
+                        ctx.moveTo((muxX[j] - this.state.origin_x) * ratio, (muxY[j] - 15 - this.state.origin_y) * ratio)
+                        ctx.lineTo((muxX[j] - this.state.origin_x) * ratio, (muxY[j] - 8 - this.state.origin_y) * ratio)
+                        ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (muxY[j] - 8 - this.state.origin_y) * ratio)
+                        ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
+                        ctx.stroke()
+                        break
+                      }
+                      if (muxNode[k][2] === rtlLine1[i]) {
+                        ctx.beginPath()
+                        ctx.moveTo((muxX[j] - this.state.origin_x) * ratio, (muxY[j] - 15 - this.state.origin_y) * ratio)
+                        ctx.lineTo((muxX[j] - this.state.origin_x) * ratio, (muxY[j] - 8 - this.state.origin_y) * ratio)
+                        ctx.lineTo((muxX[k] + 10 - this.state.origin_x) * ratio, (muxY[j] - 8 - this.state.origin_y) * ratio)
+                        ctx.lineTo((muxX[k] + 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
+                        ctx.stroke()
+                        break
+                      }
+                    }
+                  }
+                }
+                if (rtlNode[rtlLine2[i]] === 3) {
+                  for (var k in regNode) {
+                    if (regNode[k] === rtlLine2[i]) {
+                      ctx.beginPath()
+                      ctx.moveTo((muxX[j] - this.state.origin_x) * ratio, (muxY[j] - 15 - this.state.origin_y) * ratio)
+                      ctx.lineTo((regX[k] - this.state.origin_x) * ratio, (-20 - this.state.origin_y) * ratio)
+                      ctx.stroke()
+                      break
+                    }
+                  }
+                }
+                if (rtlNode[rtlLine2[i]] === 4 || rtlNode[rtlLine2[i]] === 5 || rtlNode[rtlLine2[i]] === 6 || rtlNode[rtlLine2[i]] === 7) {
+                  for (var k in aluNode) {
+                    if (aluNode[k][1] === rtlLine2[i]) {
+                      if (muxNode[j][3] === 1) {
+                        ctx.beginPath()
+                        ctx.moveTo((muxX[j] - this.state.origin_x) * ratio, (muxY[j] - 15 - this.state.origin_y) * ratio)
+                        ctx.lineTo((aluX[k] - 30 - this.state.origin_x) * ratio, (aluY - 45 - this.state.origin_y) * ratio)
+                        ctx.stroke()
+                      } 
+                      if (muxNode[j][3] === 2) {
+                        ctx.beginPath()
+                        ctx.moveTo((muxX[j] - this.state.origin_x) * ratio, (muxY[j] - 15 - this.state.origin_y) * ratio)
+                        ctx.lineTo((aluX[k] + 30 - this.state.origin_x) * ratio, (aluY - 45 - this.state.origin_y) * ratio)
+                        ctx.stroke()
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            break
+        }
+      }
     }
 
-    // ポート接続線描画
-    for (var i in nodeEdge1) {
-      ctx.lineWidth = "2px"
-      ctx.beginPath()
-      ctx.moveTo((nodeX[nodeEdge1[i]] - this.state.origin_x) * ratio, (nodeY[nodeEdge1[i]] - this.state.origin_y + 35) * ratio)
-      switch (nodeEdgeType[i]) {
-        case 'l':
-          ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x - 20) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
-          break
-        case 'r':
-          ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x + 20) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
-          break
-        case 'c':
-          ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
-          break
+    // DFG描画
+    if (this.props.id > 0 && this.props.id < 4) {
+      // ポート選択描画
+      if (this.state.selectEdge) {
+        ctx.lineWidth = "2px"
+        ctx.beginPath()
+        ctx.moveTo(this.state.mouse_x, this.state.mouse_y)
+        switch (this.state.selectEdgeStore[1]) {
+          case 0:
+            ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y + 35) * ratio)
+            break
+          case 1:
+            ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x - 20) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y - 35) * ratio)
+            break
+          case 2:
+            ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x + 20) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y - 35) * ratio)
+            break
+          case 3:
+            ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y - 35) * ratio)
+            break
+        }
+        ctx.closePath()
+        ctx.stroke()
       }
-      ctx.closePath()
-      ctx.stroke()
-    }
 
-    // ノード描画
-    for (var i in nodeType) {
-      switch (nodeType[i]) {
-        case 'A':
-          if (targetALUNode.indexOf(Number(i)) === -1) {
-            drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0)
-          } else {
-            drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1)
-          }
-          break
-        case 'S':
-          if (targetALUNode.indexOf(Number(i)) === -1) {
-            drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0)
-          } else {
-            drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1)
-          }
-          break
-        case 'M':
-          if (targetALUNode.indexOf(Number(i)) === -1) {
-            drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0)
-          } else {
-            drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1)
-          }
-          break
-        case 'D':
-          if (targetALUNode.indexOf(Number(i)) === -1) {
-            drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0)
-          } else {
-            drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1)
-          }
-          break
-        case 'I':
-          drawIn(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
-          break
-        case 'O':
-          drawOut(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
-          break
+      // ポート接続線描画
+      for (var i in nodeEdge1) {
+        ctx.lineWidth = "2px"
+        ctx.beginPath()
+        ctx.moveTo((nodeX[nodeEdge1[i]] - this.state.origin_x) * ratio, (nodeY[nodeEdge1[i]] - this.state.origin_y + 35) * ratio)
+        switch (nodeEdgeType[i]) {
+          case 'l':
+            ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x - 20) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
+            break
+          case 'r':
+            ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x + 20) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
+            break
+          case 'c':
+            ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
+            break
+        }
+        ctx.closePath()
+        ctx.stroke()
       }
-    }
-    // マウスカーソル付属描画
-    if (this.state.mouseover) {
-      switch (this.props.id) {
-        case 1:
-          switch (this.props.dfgMode) {
-            case 3:
-              drawAdd(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
-              break
-            case 4:
-              drawSub(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
-              break
-            case 5:
-              drawMulti(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
-              break
-            case 6:
-              drawDiv(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
-              break
-            case 7:
-              drawIn(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
-              break
-            case 8:
-              drawOut(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
-              break
-          }
-          break;
-        default:
-          break;
+
+      // ノード描画
+      for (var i in nodeType) {
+        switch (nodeType[i]) {
+          case 'A':
+            if (targetALUNode.indexOf(Number(i)) === -1) {
+              drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0)
+            } else {
+              drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1)
+            }
+            break
+          case 'S':
+            if (targetALUNode.indexOf(Number(i)) === -1) {
+              drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0)
+            } else {
+              drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1)
+            }
+            break
+          case 'M':
+            if (targetALUNode.indexOf(Number(i)) === -1) {
+              drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0)
+            } else {
+              drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1)
+            }
+            break
+          case 'D':
+            if (targetALUNode.indexOf(Number(i)) === -1) {
+              drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0)
+            } else {
+              drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1)
+            }
+      break
+          case 'I':
+            drawIn(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+            break
+          case 'O':
+            drawOut(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+            break
+        }
       }
-    }
-    function drawAdd(ctx, x, y, ratio, i) {
-      //下部接続線
-      ctx.strokeStyle = "rgb(20, 20, 20)"
-      ctx.lineWidth = "2px"
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x, y + (35 * ratio))
-      ctx.closePath()
-      ctx.stroke()
-      ctx.fillStyle = "rgb(200 ,100 ,40)"
-      ctx.beginPath()
-      ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      //上部接続線
-      ctx.fillStyle = "rgb(40, 100, 200)"
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x + (20 * ratio), y - (35 * ratio))
-      ctx.closePath()
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x - (20 * ratio), y - (35 * ratio))
-      ctx.closePath()
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      //中央
-      if (i === 1) {
-        ctx.fillStyle = "rgb(220, 20, 20)"
-      } else {
-        ctx.fillStyle = "rgb(220, 220, 220)"
+      // マウスカーソル付属描画
+      if (this.state.mouseover) {
+        switch (this.props.id) {
+          case 1:
+            switch (this.props.dfgMode) {
+              case 3:
+                drawAdd(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
+                break
+              case 4:
+                drawSub(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
+                break
+              case 5:
+                drawMulti(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
+                break
+              case 6:
+                drawDiv(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
+                break
+              case 7:
+                drawIn(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
+                break
+              case 8:
+                drawOut(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
+                break
+            }
+            break;
+          default:
+            break;
+        }
       }
-      ctx.beginPath()
-      ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      ctx.fillStyle = "rgb(20, 20, 20)"
-      ctx.font = 24 * ratio + "px sans-serif"
-      ctx.textAlign = "center"
-      ctx.textBaseline = "middle"
-      ctx.fillText("＋", x, y)
-    }
-    function drawSub(ctx, x, y, ratio, i) {
-      //下部接続線
-      ctx.strokeStyle = "rgb(20, 20, 20)"
-      ctx.lineWidth = "2px"
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x, y + (35 * ratio))
-      ctx.closePath()
-      ctx.stroke()
-      ctx.fillStyle = "rgb(200 ,100 ,40)"
-      ctx.beginPath()
-      ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      //上部接続線
-      ctx.fillStyle = "rgb(40, 100, 200)"
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x + (20 * ratio), y - (35 * ratio))
-      ctx.closePath()
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x - (20 * ratio), y - (35 * ratio))
-      ctx.closePath()
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      //中央
-      if (i === 1) {
-        ctx.fillStyle = "rgb(220, 20, 20)"
-      } else {
-        ctx.fillStyle = "rgb(220, 220, 220)"
+      function drawAdd(ctx, x, y, ratio, i) {
+        //下部接続線
+        ctx.strokeStyle = "rgb(20, 20, 20)"
+        ctx.lineWidth = "2px"
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x, y + (35 * ratio))
+        ctx.closePath()
+        ctx.stroke()
+        ctx.fillStyle = "rgb(200 ,100 ,40)"
+        ctx.beginPath()
+        ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        //上部接続線
+        ctx.fillStyle = "rgb(40, 100, 200)"
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x + (20 * ratio), y - (35 * ratio))
+        ctx.closePath()
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x - (20 * ratio), y - (35 * ratio))
+        ctx.closePath()
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        //中央
+        if (i === 1 && this.props.id == 3) {
+          ctx.fillStyle = "rgb(220, 20, 20)"
+        } else {
+          ctx.fillStyle = "rgb(220, 220, 220)"
+        }
+        ctx.beginPath()
+        ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        ctx.fillStyle = "rgb(20, 20, 20)"
+        ctx.font = 24 * ratio + "px sans-serif"
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText("＋", x, y)
       }
-      ctx.beginPath()
-      ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      ctx.fillStyle = "rgb(20, 20, 20)"
-      ctx.font = 24 * ratio + "px sans-serif"
-      ctx.textAlign = "center"
-      ctx.textBaseline = "middle"
-      ctx.fillText("ー", x, y)
-    }
-    function drawMulti(ctx, x, y, ratio, i) {
-      //下部接続線
-      ctx.strokeStyle = "rgb(20, 20, 20)"
-      ctx.lineWidth = "2px"
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x, y + (35 * ratio))
-      ctx.closePath()
-      ctx.stroke()
-      ctx.fillStyle = "rgb(200, 100, 40)"
-      ctx.beginPath()
-      ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      //上部接続線
-      ctx.fillStyle = "rgb(40, 100, 200)"
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x + (20 * ratio), y - (35 * ratio))
-      ctx.closePath()
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x - (20 * ratio), y - (35 * ratio))
-      ctx.closePath()
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      //中央
-      if (i === 1) {
-        ctx.fillStyle = "rgb(220, 20, 20)"
-      } else {
-        ctx.fillStyle = "rgb(220, 220, 220)"
+      function drawSub(ctx, x, y, ratio, i) {
+        //下部接続線
+        ctx.strokeStyle = "rgb(20, 20, 20)"
+        ctx.lineWidth = "2px"
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x, y + (35 * ratio))
+        ctx.closePath()
+        ctx.stroke()
+        ctx.fillStyle = "rgb(200 ,100 ,40)"
+        ctx.beginPath()
+        ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        //上部接続線
+        ctx.fillStyle = "rgb(40, 100, 200)"
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x + (20 * ratio), y - (35 * ratio))
+        ctx.closePath()
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x - (20 * ratio), y - (35 * ratio))
+        ctx.closePath()
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        //中央
+        if (i === 1 && this.props.id == 3) {
+          ctx.fillStyle = "rgb(220, 20, 20)"
+        } else {
+          ctx.fillStyle = "rgb(220, 220, 220)"
+        }
+        ctx.beginPath()
+        ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        ctx.fillStyle = "rgb(20, 20, 20)"
+        ctx.font = 24 * ratio + "px sans-serif"
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText("ー", x, y)
       }
-      ctx.beginPath()
-      ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      ctx.fillStyle = "rgb(20, 20, 20)"
-      ctx.font = 24 * ratio + "px sans-serif"
-      ctx.textAlign = "center"
-      ctx.textBaseline = "middle"
-      ctx.fillText("×", x, y)
-    }
-    function drawDiv(ctx, x, y, ratio, i) {
-      //下部接続線
-      ctx.strokeStyle = "rgb(20, 20, 20)"
-      ctx.lineWidth = "2px"
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x, y + (35 * ratio))
-      ctx.closePath()
-      ctx.stroke()
-      ctx.fillStyle = "rgb(200, 100, 40)"
-      ctx.beginPath()
-      ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      //上部接続線
-      ctx.fillStyle = "rgb(40, 100, 200)"
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x + (20 * ratio), y - (35 * ratio))
-      ctx.closePath()
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x - (20 * ratio), y - (35 * ratio))
-      ctx.closePath()
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      //中央
-      if (i === 1) {
-        ctx.fillStyle = "rgb(220, 20, 20)"
-      } else {
-        ctx.fillStyle = "rgb(220, 220, 220)"
+      function drawMulti(ctx, x, y, ratio, i) {
+        //下部接続線
+        ctx.strokeStyle = "rgb(20, 20, 20)"
+        ctx.lineWidth = "2px"
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x, y + (35 * ratio))
+        ctx.closePath()
+        ctx.stroke()
+        ctx.fillStyle = "rgb(200, 100, 40)"
+        ctx.beginPath()
+        ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        //上部接続線
+        ctx.fillStyle = "rgb(40, 100, 200)"
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x + (20 * ratio), y - (35 * ratio))
+        ctx.closePath()
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x - (20 * ratio), y - (35 * ratio))
+        ctx.closePath()
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        //中央
+        if (i === 1 && this.props.id == 3) {
+          ctx.fillStyle = "rgb(220, 20, 20)"
+        } else {
+          ctx.fillStyle = "rgb(220, 220, 220)"
+        }
+        ctx.beginPath()
+        ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        ctx.fillStyle = "rgb(20, 20, 20)"
+        ctx.font = 24 * ratio + "px sans-serif"
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText("×", x, y)
       }
-      ctx.beginPath()
-      ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      ctx.fillStyle = "rgb(20, 20, 20)"
-      ctx.font = 24 * ratio + "px sans-serif"
-      ctx.textAlign = "center"
-      ctx.textBaseline = "middle"
-      ctx.fillText("÷", x, y)
-    }
-    function drawIn (ctx, x, y, ratio) {
-      //下部接続線
-      ctx.strokeStyle = "rgb(20, 20, 20)"
-      ctx.lineWidth = "2px"
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x, y + (35 * ratio))
-      ctx.closePath()
-      ctx.stroke()
-      ctx.fillStyle = "rgb(200, 100, 40)"
-      ctx.beginPath()
-      ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      //中央
-      ctx.fillStyle = "rgb(40, 100, 200)"
-      ctx.beginPath()
-      ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-    }
-    function drawOut (ctx, x, y, ratio) {
-      //上部接続線
-      ctx.strokeStyle = "rgb(20, 20, 20)"
-      ctx.lineWidth = "2px"
-      ctx.beginPath()
-      ctx.moveTo(x, y)
-      ctx.lineTo(x, y - (35 * ratio))
-      ctx.closePath()
-      ctx.stroke()
-      ctx.fillStyle = "rgb(40, 100, 200)"
-      ctx.beginPath()
-      ctx.arc(x, y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
-      //中央
-      ctx.fillStyle = "rgb(200, 100, 40)"
-      ctx.beginPath()
-      ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
-      ctx.fill()
-      ctx.stroke()
+      function drawDiv(ctx, x, y, ratio, i) {
+        //下部接続線
+        ctx.strokeStyle = "rgb(20, 20, 20)"
+        ctx.lineWidth = "2px"
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x, y + (35 * ratio))
+        ctx.closePath()
+        ctx.stroke()
+        ctx.fillStyle = "rgb(200, 100, 40)"
+        ctx.beginPath()
+        ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        //上部接続線
+        ctx.fillStyle = "rgb(40, 100, 200)"
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x + (20 * ratio), y - (35 * ratio))
+        ctx.closePath()
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x - (20 * ratio), y - (35 * ratio))
+        ctx.closePath()
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        //中央
+        if (i === 1 && this.props.id == 3) {
+          ctx.fillStyle = "rgb(220, 20, 20)"
+        } else {
+          ctx.fillStyle = "rgb(220, 220, 220)"
+        }
+        ctx.beginPath()
+        ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        ctx.fillStyle = "rgb(20, 20, 20)"
+        ctx.font = 24 * ratio + "px sans-serif"
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText("÷", x, y)
+      }
+      function drawIn (ctx, x, y, ratio) {
+        //下部接続線
+        ctx.strokeStyle = "rgb(20, 20, 20)"
+        ctx.lineWidth = "2px"
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x, y + (35 * ratio))
+        ctx.closePath()
+        ctx.stroke()
+        ctx.fillStyle = "rgb(200, 100, 40)"
+        ctx.beginPath()
+        ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        //中央
+        ctx.fillStyle = "rgb(40, 100, 200)"
+        ctx.beginPath()
+        ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+      }
+      function drawOut (ctx, x, y, ratio) {
+        //上部接続線
+        ctx.strokeStyle = "rgb(20, 20, 20)"
+        ctx.lineWidth = "2px"
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.lineTo(x, y - (35 * ratio))
+        ctx.closePath()
+        ctx.stroke()
+        ctx.fillStyle = "rgb(40, 100, 200)"
+        ctx.beginPath()
+        ctx.arc(x, y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+        //中央
+        ctx.fillStyle = "rgb(200, 100, 40)"
+        ctx.beginPath()
+        ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.stroke()
+      }
     }
   }
   doMouseMove (e) {

@@ -663,6 +663,10 @@ export default class Tools extends Component {
       case 4:
         tools = <div className="tools-menu">
           <div className="tools-menu2">
+            <div onClick={() => this.props.clickDFGModeHandler(0)}><img src={cursorIcon} className={cursor} /></div>
+            <div onClick={() => this.props.clickDFGModeHandler(2)}><img src={moveIcon} className={move} /></div>
+          </div>
+          <div className="tools-menu2">
             <button onClick={() => this.changeID(3)}>前へ</button>
           </div>
         </div>
