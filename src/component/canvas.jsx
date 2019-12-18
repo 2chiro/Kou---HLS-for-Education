@@ -342,8 +342,9 @@ export default class Canvas extends Component {
                               ctx.beginPath()
                               ctx.arc((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
                               ctx.fill()
-                              ctx.beginPath((muxX[k] + 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
-                              ctx.moveTo()
+                              ctx.beginPath()
+                              ctx.arc((muxX[k] + 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                              ctx.stroke()
                             }
                             ctx.beginPath()
                             ctx.moveTo((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
