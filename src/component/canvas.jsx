@@ -117,7 +117,8 @@ export default class Canvas extends Component {
             ctx.fillRect((registerX[i] - this.state.origin_x) * ratio, (registerY[i] - this.state.origin_y) * ratio, 20 * ratio, 120 * (endEdge[i] - startEdge[i]) * ratio)
             ctx.strokeRect((registerX[i] - this.state.origin_x) * ratio, (registerY[i] - this.state.origin_y) * ratio, 20 * ratio, 120 * (endEdge[i] - startEdge[i]) * ratio)
             ctx.font = font
-            ctx.strokeText(i, (registerX[i] + 10 - this.state.origin_x) * ratio, (registerY[i] + 60 - this.state.origin_y) * ratio)
+            ctx.fillStyle = "rgb(0, 0, 0)"
+            ctx.fillText(i, (registerX[i] + 10 - this.state.origin_x) * ratio, (registerY[i] + 60 - this.state.origin_y) * ratio)
           }
         }
       }
@@ -196,9 +197,13 @@ export default class Canvas extends Component {
         ctx.lineTo(x + (-22.5 * ratio), y + (-30 * ratio))
         ctx.closePath()
         ctx.stroke()
+        ctx.font = 12 * ratio + "px sans-serif"
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText("0 1", x, y + (-22 * ratio))
       }
       // 接続線
-      for (var i in rtlNode) {
+      for (var i in rtlLine1) {
         switch (rtlNode[rtlLine1[i]]) {
           case 1:
             for (var j in inputNode) {
@@ -593,17 +598,29 @@ export default class Canvas extends Component {
       // ポート接続線描画
       for (var i in nodeEdge1) {
         ctx.lineWidth = "2px"
+        var fontSize = 16 * ratio
+        var font = fontSize + "px 'Times New Roman'"
+        ctx.fillStyle = "rgb(0, 0, 139)"
         ctx.beginPath()
         ctx.moveTo((nodeX[nodeEdge1[i]] - this.state.origin_x) * ratio, (nodeY[nodeEdge1[i]] - this.state.origin_y + 35) * ratio)
         switch (nodeEdgeType[i]) {
           case 'l':
             ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x - 20) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
+            ctx.font = font
+            ctx.fillText(i, ((nodeX[nodeEdge1[i]] + nodeX[nodeEdge2[i]]) / 2 - this.state.origin_x - 20) * ratio,
+            ((nodeY[nodeEdge1[i]] + nodeY[nodeEdge2[i]]) / 2 - this.state.origin_y) * ratio)
             break
           case 'r':
             ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x + 20) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
+            ctx.font = font
+            ctx.fillText(i, ((nodeX[nodeEdge1[i]] + nodeX[nodeEdge2[i]]) / 2 - this.state.origin_x + 20) * ratio,
+            ((nodeY[nodeEdge1[i]] + nodeY[nodeEdge2[i]]) / 2 - this.state.origin_y) * ratio)
             break
           case 'c':
             ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
+            ctx.font = font
+            ctx.fillText(i, ((nodeX[nodeEdge1[i]] + nodeX[nodeEdge2[i]]) / 2 - this.state.origin_x + 20) * ratio,
+            ((nodeY[nodeEdge1[i]] + nodeY[nodeEdge2[i]]) / 2 - this.state.origin_y) * ratio)
             break
         }
         ctx.closePath()
@@ -615,30 +632,30 @@ export default class Canvas extends Component {
         switch (nodeType[i]) {
           case 'A':
             if (targetALUNode.indexOf(Number(i)) === -1) {
-              drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0)
+              drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
             } else {
-              drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1)
+              drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1, this.props.id)
             }
             break
           case 'S':
             if (targetALUNode.indexOf(Number(i)) === -1) {
-              drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0)
+              drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
             } else {
-              drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1)
+              drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1, this.props.id)
             }
             break
           case 'M':
             if (targetALUNode.indexOf(Number(i)) === -1) {
-              drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0)
+              drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
             } else {
-              drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1)
+              drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1, this.props.id)
             }
             break
           case 'D':
             if (targetALUNode.indexOf(Number(i)) === -1) {
-              drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0)
+              drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
             } else {
-              drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1)
+              drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1, this.props.id)
             }
       break
           case 'I':
@@ -678,7 +695,7 @@ export default class Canvas extends Component {
             break;
         }
       }
-      function drawAdd(ctx, x, y, ratio, i) {
+      function drawAdd(ctx, x, y, ratio, i, id) {
         //下部接続線
         ctx.strokeStyle = "rgb(20, 20, 20)"
         ctx.lineWidth = "2px"
@@ -713,7 +730,7 @@ export default class Canvas extends Component {
         ctx.fill()
         ctx.stroke()
         //中央
-        if (i === 1 && this.props.id == 3) {
+        if (i === 1 && id == 3) {
           ctx.fillStyle = "rgb(220, 20, 20)"
         } else {
           ctx.fillStyle = "rgb(220, 220, 220)"
@@ -728,7 +745,7 @@ export default class Canvas extends Component {
         ctx.textBaseline = "middle"
         ctx.fillText("＋", x, y)
       }
-      function drawSub(ctx, x, y, ratio, i) {
+      function drawSub(ctx, x, y, ratio, i, id) {
         //下部接続線
         ctx.strokeStyle = "rgb(20, 20, 20)"
         ctx.lineWidth = "2px"
@@ -763,7 +780,7 @@ export default class Canvas extends Component {
         ctx.fill()
         ctx.stroke()
         //中央
-        if (i === 1 && this.props.id == 3) {
+        if (i === 1 && id == 3) {
           ctx.fillStyle = "rgb(220, 20, 20)"
         } else {
           ctx.fillStyle = "rgb(220, 220, 220)"
@@ -778,7 +795,7 @@ export default class Canvas extends Component {
         ctx.textBaseline = "middle"
         ctx.fillText("ー", x, y)
       }
-      function drawMulti(ctx, x, y, ratio, i) {
+      function drawMulti(ctx, x, y, ratio, i, id) {
         //下部接続線
         ctx.strokeStyle = "rgb(20, 20, 20)"
         ctx.lineWidth = "2px"
@@ -813,7 +830,7 @@ export default class Canvas extends Component {
         ctx.fill()
         ctx.stroke()
         //中央
-        if (i === 1 && this.props.id == 3) {
+        if (i === 1 && id == 3) {
           ctx.fillStyle = "rgb(220, 20, 20)"
         } else {
           ctx.fillStyle = "rgb(220, 220, 220)"
@@ -828,7 +845,7 @@ export default class Canvas extends Component {
         ctx.textBaseline = "middle"
         ctx.fillText("×", x, y)
       }
-      function drawDiv(ctx, x, y, ratio, i) {
+      function drawDiv(ctx, x, y, ratio, i, id) {
         //下部接続線
         ctx.strokeStyle = "rgb(20, 20, 20)"
         ctx.lineWidth = "2px"
@@ -863,7 +880,7 @@ export default class Canvas extends Component {
         ctx.fill()
         ctx.stroke()
         //中央
-        if (i === 1 && this.props.id == 3) {
+        if (i === 1 && id == 3) {
           ctx.fillStyle = "rgb(220, 20, 20)"
         } else {
           ctx.fillStyle = "rgb(220, 220, 220)"

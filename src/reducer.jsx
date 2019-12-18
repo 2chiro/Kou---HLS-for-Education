@@ -350,11 +350,34 @@ export default function reducer (state = initialState, action) {
                 return state
             }
             var useALU = node.useALU
+
+            var type = ''
+            switch (node.ALUValue.substring(0, 3)){
+                case '加算器':
+                    type = 'A'
+                    break
+                case '減算器':
+                    type = 'S'
+                    break
+                case '乗算器':
+                    type = 'M'
+                    break
+                case '除算器':
+                    type = 'D'
+                    break
+            }
+            if (node.nodeType[action.nodeId] !== type) {
+                return state
+            }
+
             for (var i in useALU) {
                 if (useALU[i].name === node.ALUValue) {
                     if (useALU[i].node.indexOf(action.nodeId) === -1) {
                         useALU[i].node.push(Number(action.nodeId))
-                        break
+                    }
+                } else {
+                    if (useALU[i].node.indexOf(Number(action.nodeId)) !== -1) {
+                        useALU[i].node.splice(useALU[i].node.indexOf(action.nodeId), 1)
                     }
                 }
             }
