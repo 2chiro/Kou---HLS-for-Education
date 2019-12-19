@@ -7,6 +7,7 @@ const initialState = {
     nodeInfo: [
         {
             nodeName: 'noname',
+            // --- DFG用 ---
             nodeType: [], nodeX: [], nodeY: [], nodeTime: [],
             cycle: 0, nodeMinY: 0, nodeMaxX: 0,
             add: 1, sub: 1, mult: 1, div: 1, reg: 0,
@@ -14,12 +15,14 @@ const initialState = {
             startEdge: [], endEdge: [], doubleEdge: [],
             useRegister: [], registerX: [], registerY: [],
             useALU: [], ALUValue: '',
+            // --- RTL用 ---
             inputNode: [], inputX:[], inputY: 0,
             outputNode: [], outputX: [], outputY: 0,
             aluNode: [], aluX: [], aluY: 0,
             regNode: [], regX: [], muxNode: [], muxX: [], muxY: 0,
             rtlNode: [], rtlLine1: [], rtlLine2: [], rtlLine3: [],
             tmux: 0
+            // -------------
         }
     ]
 }
@@ -87,15 +90,17 @@ export default function reducer (state = initialState, action) {
                 nodeY[action.nodeId] = action.moveY
                 node.nodeY = nodeY
             }
-            var x, y;
-            for (var i in nodeX) {
-                x = i == 0 ? nodeX[0] : x
-                x = i > 0 && x < nodeX[i] ? nodeX[i] : x
-                y = i == 0 ? nodeY[0] : y
-                y = i > 0 && y > nodeY[i] ? nodeY[i] : y
+            if (state.id !== 3) {
+                var x, y;
+                for (var i in nodeX) {
+                    x = i == 0 ? nodeX[0] : x
+                    x = i > 0 && x < nodeX[i] ? nodeX[i] : x
+                    y = i == 0 ? nodeY[0] : y
+                    y = i > 0 && y > nodeY[i] ? nodeY[i] : y
+                }
+                node.nodeMaxX = x
+                node.nodeMinY = y
             }
-            node.nodeMaxX = x
-            node.nodeMinY = y
             return {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
@@ -361,7 +366,49 @@ export default function reducer (state = initialState, action) {
             }
         case 'SET_REGISTER':
             var node = state.nodeInfo[state.selectTabId]
-            
+            var registerX = node.registerX
+            var registerY = node.registerY
+            var nodeMaxX = node.nodeMaxX
+            var nodeMinY = node.nodeMinY
+            var reg = node.reg
+            var cycle = node.cycle
+            var useRegister = []
+            for (var i = 0; i < reg; i++) {
+                var rx = []
+                for (var j in registerX) {
+                    if (registerX[i] !== 'none' && registerY[i] !== 'none') {
+                        if (i === 0) {
+                            if (registerX[j] < nodeMaxX + 120) {
+                                //console.log('reg0',  j)
+                                rx.push(Number(j))
+                            }
+                        } else if (i === reg - 1) {
+                            if (registerX[j] > nodeMaxX + 80 + 40 * i) {
+                                //console.log('reg' + i,  j)
+                                rx.push(Number(j))
+                            }
+                        } else {
+                            if (registerX[j] > nodeMaxX + 80 + 40 * i && registerX[j] < nodeMaxX + 80 + 40 * (i + 1)) {
+                                //console.log('reg' + i,  j)
+                                rx.push(Number(j))
+                            }
+                        }
+                    }
+                }
+                //console.log(rx)
+                var ry = []
+                for (var j = 0; j < cycle; j++) {
+                    for (var k in rx) {
+                        if (registerY[k] > nodeMinY - 60 + 120 * j && registerY[k] < nodeMinY + 60 + 120 * j) {
+                            ry.push(Number(rx[k]))
+                        }
+                    }
+                }
+                //console.log(ry)
+                useRegister.push(ry)
+            }
+            node.useRegister = useRegister
+
             return {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)

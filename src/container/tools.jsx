@@ -34,6 +34,9 @@ const mapDispatchToProps = dispatch => {
         changeRegisterHandler: (v) => {
             dispatch(Actions.changeRegister(v))
         },
+        setRegisterHandler: () => {
+            dispatch(Actions.setRegister())
+        },
         changeALUHandler: (v) => {
             dispatch(Actions.changeALU(v))
         },

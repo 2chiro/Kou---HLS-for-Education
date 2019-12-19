@@ -99,14 +99,24 @@ export default class Tools extends Component {
       case 4:
         if (this.props.id === 3) {
 
-          f1(this.props).then(f2)
+          f0(this.props).then(f1).then(f2)
             .then((response) => {
               console.log(response)
               console.log("BIND_VHDL_END")
             })
-
-          function f1(props) {
+          
+          function f0 (props) {
             return new Promise ((resolve, reject) => {
+              console.log('TEST')
+              props.setRegisterHandler()
+              console.log('TEST1')
+              resolve(props, "f0 ==> f1")
+            })
+          }
+
+          function f1(props, passVal) {
+            return new Promise ((resolve, reject) => {
+              console.log(passVal)
               try {
                 const node = props.nodeInfo[props.selectTabId]
                 const useRegister = node.useRegister

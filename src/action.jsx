@@ -89,6 +89,11 @@ const Actions = {
             moveX: moveX
         }
     },
+    setRegister: () => {
+        return {
+            type: 'SET_REGISTER'
+        }
+    },
     changeALU: (v) => {
         return {
             type: 'CHANGE_ALU',
