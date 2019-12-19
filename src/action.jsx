@@ -1,4 +1,9 @@
 const Actions = {
+    new: () => {
+        return{
+            type: 'NEW'
+        }
+    },
     changeId: (num) => {
         return {
             type: 'CHANGE_ID',

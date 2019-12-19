@@ -26,8 +26,30 @@ const initialState = {
 
 export default function reducer (state = initialState, action) {
     switch (action.type) {
+        case 'NEW':
+            var node = state.nodeInfo[state.selectTabId]
+            node = {
+                nodeName: 'noname',
+                nodeType: [], nodeX: [], nodeY: [], nodeTime: [],
+                cycle: 0, nodeMinY: 0, nodeMaxX: 0,
+                add: 1, sub: 1, mult: 1, div: 1, reg: 0,
+                nodeEdge1: [], nodeEdge2: [], nodeEdgeType: [],
+                startEdge: [], endEdge: [], doubleEdge: [],
+                useRegister: [], registerX: [], registerY: [],
+                useALU: [], ALUValue: '',
+                inputNode: [], inputX:[], inputY: 0,
+                outputNode: [], outputX: [], outputY: 0,
+                aluNode: [], aluX: [], aluY: 0,
+                regNode: [], regX: [], muxNode: [], muxX: [], muxY: 0,
+                rtlNode: [], rtlLine1: [], rtlLine2: [], rtlLine3: [],
+                tmux: 0
+            }
+            return {
+                ...state, id: 1, dfgMode: 0,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+            }
         case 'CHANGE_ID':
-            return {...state, id: action.value, dfgMode: 0}
+            return {...state, id: action.value, dfgMode: 0,}
         case 'CHANGE_DFGMODE':
             return {...state, dfgMode: action.value}
         case 'PUT_NODE': 
@@ -333,6 +355,13 @@ export default function reducer (state = initialState, action) {
             var node = state.nodeInfo[state.selectTabId]
             var registerX = node.registerX
             registerX[action.edgeId] = action.moveX
+            return {
+                ...state,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+            }
+        case 'SET_REGISTER':
+            var node = state.nodeInfo[state.selectTabId]
+            
             return {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
