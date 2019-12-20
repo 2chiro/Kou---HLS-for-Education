@@ -9,7 +9,7 @@ const initialState = {
             nodeName: 'noname',
             // --- DFG用 ---
             nodeType: [], nodeX: [], nodeY: [], nodeTime: [],
-            cycle: 0, nodeMinY: 0, nodeMaxX: 0,
+            cycle: 0, nodeMinY: 0, nodeMaxX: 0, nodeMinX: 0,
             add: 1, sub: 1, mult: 1, div: 1, reg: 0,
             nodeEdge1: [], nodeEdge2: [], nodeEdgeType: [],
             startEdge: [], endEdge: [], doubleEdge: [],
@@ -91,15 +91,18 @@ export default function reducer (state = initialState, action) {
                 node.nodeY = nodeY
             }
             if (state.id !== 3) {
-                var x, y;
+                var x1, x2, y;
                 for (var i in nodeX) {
-                    x = i == 0 ? nodeX[0] : x
-                    x = i > 0 && x < nodeX[i] ? nodeX[i] : x
+                    x1 = i == 0 ? nodeX[0] : x1
+                    x1 = i > 0 && x1 < nodeX[i] ? nodeX[i] : x1
+                    x2 = i == 0 ? nodeX[0] : x2
+                    x2 = i > 0 && x2 > nodeX[i] ? nodeX[i] : x2
                     y = i == 0 ? nodeY[0] : y
                     y = i > 0 && y > nodeY[i] ? nodeY[i] : y
                 }
-                node.nodeMaxX = x
-                node.nodeMinY = y
+                node.nodeMaxX = x1
+                node.nodeMixX = x2
+                node.nodeMinY = y1
             }
             return {
                 ...state,
@@ -345,6 +348,21 @@ export default function reducer (state = initialState, action) {
                 }
             }
             node.nodeY = nodeY
+            return {
+                ...state,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+            }
+        case 'SET_SDFG':
+            var node = state.nodeInfo[state.selectTabId]
+            node.nodeType = action.nodeType
+            node.nodeX = action.nodeX
+            node.nodeY = action.nodeY
+            node.nodeTime = action.nodeTime
+            node.nodeEdge1 = action.nodeEdge1
+            node.nodeEdge2 = action.nodeEdge2
+            node.nodeEdgeType = action.nodeEdgeType
+            node.cycle = action.cycle
+            
             return {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)

@@ -31,6 +31,9 @@ const mapDispatchToProps = dispatch => {
         setNodeTimeHandler: (nodeTime, cycle) => {
             dispatch(Actions.timeSetNode(nodeTime, cycle))
         },
+        setSDFGHandler: (nodeType, nodeX, nodeY, nodeTime, nodeEdge1, nodeEdge2, nodeEdgeType, cycle) => {
+            dispatch(Actions.setSDFG(nodeType, nodeX, nodeY, nodeTime, nodeEdge1, nodeEdge2, nodeEdgeType, cycle))
+        },
         changeRegisterHandler: (v) => {
             dispatch(Actions.changeRegister(v))
         },

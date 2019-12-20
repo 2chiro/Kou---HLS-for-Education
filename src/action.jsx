@@ -76,6 +76,19 @@ const Actions = {
             cycle: cycle
         }
     },
+    setSDFG: (nodeType, nodeX, nodeY, nodeTime, nodeEdge1, nodeEdge2, nodeEdgeType, cycle) => {
+        return {
+            type: 'SET_SDFG',
+            nodeType: nodeType,
+            nodeX: nodeX,
+            nodeY: nodeY,
+            nodeTime: nodeTime,
+            nodeEdge1: nodeEdge1,
+            nodeEdge2: nodeEdge2,
+            nodeEdgeType: nodeEdgeType,
+            cycle: cycle
+        }
+    },
     changeRegister: (v) => {
         return {
             type: 'CHANGE_REGISTER',

@@ -663,6 +663,7 @@ export default class Canvas extends Component {
             drawIn(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
             break
           case 'O':
+          case 'R':
             drawOut(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
             break
         }

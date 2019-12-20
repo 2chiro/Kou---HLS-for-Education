@@ -395,6 +395,7 @@ export default class Tools extends Component {
   }
   startAlgoBind () {
     if (!this.state.isManualBind) {
+      const node = this.props.nodeInfo[this.props.selectTabId]
       const target = this.state.bindList.find((v) => v.name === this.state.algoBindValue)
       console.log(target)
       ipcRenderer.send('binding', target)
@@ -402,6 +403,59 @@ export default class Tools extends Component {
         console.log(result)
         if (result === 'Complete') {
           const __dirname = path.resolve()
+          if (target.newsdfg) {
+            const sdfgPath = path.join(__dirname, 'noname/sdfg.dat')
+            const sdfgFile = fs.createReadStream(sdfgPath, 'utf8')
+            const sdfgLine = readLine.createInterface(sdfgFile, {})
+            var separator = /\s+/
+            var nodeType = []
+            var nodeX = []
+            var nodeY = []
+            var nodeTime = []
+            var nodeEdge1 = []
+            var nodeEdge2 = []
+            var nodeEdgeType = []
+            var vertex = false
+            var edge = false
+            var cycle = 0
+            var k = 0
+            sdfgLine.on('line', data => {
+              var str = data.split(separator)
+              if (str[0] === '--vertex') {
+                vertex = true
+                edge = false
+              } else if (str[0] === '--edge') {
+                vertex = false
+                edge = true
+              } else if (str[0] === '--exclusive') {
+                cycle = cycle + 1
+                this.props.setSDFGHandler(nodeType, nodeX, nodeY, nodeTime, nodeEdge1, nodeEdge2, nodeEdgeType, cycle)
+                this.props.analysisLifetimeHandler()
+              } else {
+                if (vertex) {
+                  cycle = Number(str[2]) > cycle ? Number(str[2]) : cycle
+                  nodeType.push(str[1] === 'R'? 'O' : str[1])
+                  nodeTime.push(Number(str[2]))
+                  if (str[3] === 'exop') {
+                    nodeX.push(node.nodeMinX - 80 * k)
+                    var c = str[1] === 'I' ? 0 : Number(str[2])
+                    c = str[1] === 'O' ? cycle : Number(str[2])
+                    nodeY.push(node.nodeMinY + 120 * c)
+                    k = k + 1
+                  } else {
+                    nodeX.push(Number(str[3]))
+                    nodeY.push(Number(str[4]))
+                  }
+                }
+                if (edge) {
+                  nodeEdge1.push(Number(str[1]))
+                  nodeEdge2.push(Number(str[2]))
+                  nodeEdgeType.push(str[3])
+                }
+              }
+            })
+          }
+          
           const bindPath = path.join(__dirname, 'noname/bind.dat')
           const bindFile = fs.createReadStream(bindPath, 'utf8')
           const bindLine = readLine.createInterface(bindFile, {})

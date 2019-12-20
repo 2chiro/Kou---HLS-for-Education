@@ -73,8 +73,11 @@ ipcMain.on('binding', (event, target) => {
   var algPath = path.join(__dirname, 'algorithms/binding/', target.path)
   var sdfgPath = path.join(__dirname, 'noname/sdfg.dat')
   var bindPath = path.join(__dirname, 'noname/bind.dat')
-  console.log(algPath, sdfgPath, bindPath)
-  exec('java', ['-jar', algPath, sdfgPath, bindPath], (err, stdout, stderr) => {
+  var newsdfgPath = target.newsdfg ? path.join(__dirname, 'noname/sdfg.dat') : "dummy"
+  var topPath = target.top ? path.join(__dirname, 'noname/top.dat') : "dummy"
+  
+  console.log(algPath, sdfgPath, bindPath, newsdfgPath, topPath)
+  exec('java', ['-jar', algPath, sdfgPath, bindPath, newsdfgPath, topPath], (err, stdout, stderr) => {
     if (err != null) {
       console.log(err)
       var result = 'Error'
