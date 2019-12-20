@@ -403,122 +403,138 @@ export default class Tools extends Component {
         console.log(result)
         if (result === 'Complete') {
           const __dirname = path.resolve()
-          if (target.newsdfg) {
-            const sdfgPath = path.join(__dirname, 'noname/sdfg.dat')
-            const sdfgFile = fs.createReadStream(sdfgPath, 'utf8')
-            const sdfgLine = readLine.createInterface(sdfgFile, {})
-            var separator = /\s+/
-            var nodeType = []
-            var nodeX = []
-            var nodeY = []
-            var nodeTime = []
-            var nodeEdge1 = []
-            var nodeEdge2 = []
-            var nodeEdgeType = []
-            var vertex = false
-            var edge = false
-            var cycle = 0
-            var k = 0
-            sdfgLine.on('line', data => {
-              var str = data.split(separator)
-              if (str[0] === '--vertex') {
-                vertex = true
-                edge = false
-              } else if (str[0] === '--edge') {
-                vertex = false
-                edge = true
-              } else if (str[0] === '--exclusive') {
-                cycle = cycle + 1
-                this.props.setSDFGHandler(nodeType, nodeX, nodeY, nodeTime, nodeEdge1, nodeEdge2, nodeEdgeType, cycle)
-                this.props.analysisLifetimeHandler()
-              } else {
-                if (vertex) {
-                  cycle = Number(str[2]) > cycle ? Number(str[2]) : cycle
-                  nodeType.push(str[1] === 'R'? 'O' : str[1])
-                  nodeTime.push(Number(str[2]))
-                  if (str[3] === 'exop') {
-                    nodeX.push(node.nodeMinX - 80 * k)
-                    var c = str[1] === 'I' ? 0 : Number(str[2])
-                    c = str[1] === 'O' ? cycle : Number(str[2])
-                    nodeY.push(node.nodeMinY + 120 * c)
-                    k = k + 1
+
+          f0(this.props).then(f1)
+            .then((response) => {
+              console.log(response)
+              console.log("BIND_END")
+          })
+
+          function f0 (props) {
+            return new Promise ((resolve, reject) => {
+              if (target.newsdfg) {
+                const sdfgPath = path.join(__dirname, 'noname/sdfg.dat')
+                const sdfgFile = fs.createReadStream(sdfgPath, 'utf8')
+                const sdfgLine = readLine.createInterface(sdfgFile, {})
+                var separator = /\s+/
+                var nodeType = []
+                var nodeX = []
+                var nodeY = []
+                var nodeTime = []
+                var nodeEdge1 = []
+                var nodeEdge2 = []
+                var nodeEdgeType = []
+                var vertex = false
+                var edge = false
+                var cycle = 0
+                var k = 0
+                sdfgLine.on('line', data => {
+                  var str = data.split(separator)
+                  if (str[0] === '--vertex') {
+                    vertex = true
+                    edge = false
+                  } else if (str[0] === '--edge') {
+                    vertex = false
+                    edge = true
+                  } else if (str[0] === '--exclusive') {
+                    cycle = cycle + 1
+                    props.setSDFGHandler(nodeType, nodeX, nodeY, nodeTime, nodeEdge1, nodeEdge2, nodeEdgeType, cycle)
+                    resolve(props, 'f0 => f1')
                   } else {
-                    nodeX.push(Number(str[3]))
-                    nodeY.push(Number(str[4]))
+                    if (vertex) {
+                      cycle = Number(str[2]) > cycle && str[1] !== 'R' ? Number(str[2]) : cycle
+                      nodeType.push(str[1])
+                      nodeTime.push(str[1] === 'I' && Number(str[2]) === -1 ? 0 : Number(str[2]))
+                      if (str[3] === 'exop') {
+                        nodeX.push(node.nodeMinX - 80 * k)
+                        nodeY.push(node.nodeMinY + 120 * Number(str[2]))
+                        k = k + 1
+                      } else {
+                        nodeX.push(Number(str[3]))
+                        nodeY.push(Number(str[4]))
+                      }
+                    }
+                    if (edge) {
+                      nodeEdge1.push(Number(str[1]))
+                      nodeEdge2.push(Number(str[2]))
+                      nodeEdgeType.push(str[3])
+                    }
                   }
-                }
-                if (edge) {
-                  nodeEdge1.push(Number(str[1]))
-                  nodeEdge2.push(Number(str[2]))
-                  nodeEdgeType.push(str[3])
-                }
+                })
               }
             })
           }
           
-          const bindPath = path.join(__dirname, 'noname/bind.dat')
-          const bindFile = fs.createReadStream(bindPath, 'utf8')
-          const bindLine = readLine.createInterface(bindFile, {})
-          var reg_bind = false
-          var op_bind = false
-          var separator = /\s+/
-          var useRegister = []
-          var useALU = []
-          var reg = 0
-          bindLine.on('line', data => {
-            var str = data.split(separator)
-            if (str[0] === 'Register.') {
-              reg = Number(str[1])
-            } else if (str[0] === '--register') {
-              reg_bind = true
-              op_bind = false
-            } else if (str[0] === '--operation') {
-              reg_bind = false
-              op_bind = true
-            } else if (str[0] === '--exclusive') {
-              this.props.useRegAndALUHandler(reg, useRegister, useALU)
-            } else {
-              if (reg_bind) {
-                var r = []
-                for (var i = 1; i < str.length; i++) {
-                  r.push(Number(str[i]))
-                }
-                useRegister.push(r)
-              }
-              if (op_bind) {
-                var op = str[0].substr(0, 3)
-                var num = str[0].substr(3)
-                var node = []
-                switch (op) {
-                  case 'Add':
+          function f1 (props, passVal) {
+            return new Promise ((resolve, reject) => {
+              console.log(passVal)
+              const bindPath = path.join(__dirname, 'noname/bind.dat')
+              const bindFile = fs.createReadStream(bindPath, 'utf8')
+              const bindLine = readLine.createInterface(bindFile, {})
+              var reg_bind = false
+              var op_bind = false
+              var separator = /\s+/
+              var useRegister = []
+              var useALU = []
+              var reg = 0
+              bindLine.on('line', data => {
+                var str = data.split(separator)
+                if (str[0] === 'Register.') {
+                  reg = Number(str[1])
+                } else if (str[0] === '--register') {
+                  reg_bind = true
+                  op_bind = false
+                } else if (str[0] === '--operation') {
+                  reg_bind = false
+                  op_bind = true
+                } else if (str[0] === '--exclusive') {
+                  props.useRegAndALUHandler(reg, useRegister, useALU)
+                  resolve('f1')
+                } else {
+                  if (reg_bind) {
+                    var r = []
                     for (var i = 1; i < str.length; i++) {
-                      node.push(Number(str[i]))
+                      r.push(Number(str[i]))
                     }
-                    useALU.push({name: '加算器' + num, node: node})
-                    break;
-                  case 'Sub':
-                    for (var i = 1; i < str.length; i++) {
-                      node.push(Number(str[i]))
-                    }
-                    useALU.push({name: '減算器' + num, node: node})
-                    break;
-                  case 'Mul':
-                    for (var i = 1; i < str.length; i++) {
-                      node.push(Number(str[i]))
-                    }
-                    useALU.push({name: '乗算器' + num, node: node})
-                    break;
-                  case 'Div':
-                    for (var i = 1; i < str.length; i++) {
-                      node.push(Number(str[i]))
-                    }
-                    useALU.push({name: '除算器' + num, node: node})
-                    break;
+                    useRegister.push(r)
+                  }
+                  if (op_bind) {
+                    var op = str[0].substr(0, 3)
+                    var num = str[0].substr(3)
+                    var node = []
+                    switch (op) {
+                      case 'Add':
+                        for (var i = 1; i < str.length; i++) {
+                          node.push(Number(str[i]))
+                        }
+                        useALU.push({name: '加算器' + num, node: node})
+                        break;
+                      case 'Sub':
+                        for (var i = 1; i < str.length; i++) {
+                          node.push(Number(str[i]))
+                        }
+                        useALU.push({name: '減算器' + num, node: node})
+                        break;
+                      case 'Mul':
+                        for (var i = 1; i < str.length; i++) {
+                          node.push(Number(str[i]))
+                        }
+                        useALU.push({name: '乗算器' + num, node: node})
+                        break;
+                      case 'Div':
+                        for (var i = 1; i < str.length; i++) {
+                          node.push(Number(str[i]))
+                        }
+                        useALU.push({name: '除算器' + num, node: node})
+                        break;
 
+                    }
+                  }
                 }
-              }
-            }
-          })
+              })
+            })
+          }
+          
         }
       })
     }

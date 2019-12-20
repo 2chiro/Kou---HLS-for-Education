@@ -102,7 +102,7 @@ export default function reducer (state = initialState, action) {
                 }
                 node.nodeMaxX = x1
                 node.nodeMixX = x2
-                node.nodeMinY = y1
+                node.nodeMinY = y
             }
             return {
                 ...state,
@@ -362,6 +362,62 @@ export default function reducer (state = initialState, action) {
             node.nodeEdge2 = action.nodeEdge2
             node.nodeEdgeType = action.nodeEdgeType
             node.cycle = action.cycle
+
+            var nodeEdge1 = node.nodeEdge1
+            var nodeEdge2 = node.nodeEdge2
+            var nodeTime = node.nodeTime
+            var nodeType = node.nodeType
+            var doubleEdge = []
+            var startEdge = new Array(nodeEdge1)
+            var endEdge = new Array(nodeEdge2)
+            for (var i = 0; i < nodeEdge1.length; i++) {
+                if (nodeType[nodeEdge2[i]] === 'O' || nodeType[nodeEdge2[i]] === 'R') {
+                    nodeTime[nodeEdge2[i]] = node.cycle
+                }
+                for (var k = i + 1; k < nodeEdge1.length; k++) {
+                    if (nodeEdge1[i] === nodeEdge1[k]) {
+                        if (nodeTime[nodeEdge2[i]] < nodeTime[nodeEdge2[k]]) {
+                            doubleEdge.push(i)
+                        } else {
+                            var p = false
+                            for (var l in doubleEdge) {
+                                if (l === k) {
+                                    p = true
+                                    break
+                                }
+                            }
+                            if (!p) {
+                                doubleEdge.push(k)
+                            }
+                        }
+                    }
+                }
+                endEdge[i] = nodeTime[nodeEdge2[i]]
+                startEdge[i] = nodeTime[nodeEdge1[i]]
+            }
+            node.endEdge = endEdge
+            node.startEdge = startEdge
+            node.doubleEdge = doubleEdge
+
+            //一時的なレジスタ割当
+            var registerX = [], registerY = []
+            var reg = 0
+            for (var i in startEdge) {
+                var v = doubleEdge.indexOf(Number(i))
+                if (v === -1) {
+                    var x = node.nodeMaxX + 100 + 40 * reg
+                    var y = node.nodeMinY + 120 * startEdge[i]
+                    registerX.push(x)
+                    registerY.push(y)
+                    reg = reg + 1
+                } else {
+                    registerX.push('none')
+                    registerY.push('none')
+                }
+            }
+            node.reg = reg
+            node.registerX = registerX
+            node.registerY = registerY
             
             return {
                 ...state,

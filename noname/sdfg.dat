@@ -1,14 +1,36 @@
-add.	1
-sub.	0
-mult.	0
-div.	0
+add.         2
+sub.         0
+mult.        0
+div.         0
 --vertex
-0	O	-1	1324	-21
-1	A	1	433	-141
-2	I	-1	-361	-261
-3	I	-1	-193	-261
+0	I	-1	77.0	85.0
+1	I	-1	181.0	85.0
+2	I	-1	248.0	85.0
+3	I	-1	304.0	85.0
+4	A	1	136.0	205.0
+5	A	1	323.0	205.0
+6	A	2	204.0	325.0
+7	O	-1	217.0	445.0
+8	I	1	exop
+9	I	1	exop
+10	A	2	exop
+11	R	3	exop
+12	I	2	exop
+13	I	2	exop
+14	A	3	exop
+15	R	4	exop
 --edge
-0	2	1	l
-1	3	1	r
-2	1	0	c
+0	0	4	l
+1	1	4	r
+2	2	5	l
+3	3	5	r
+4	4	6	l
+5	5	6	r
+6	6	7	c
+7	8	10	l	exedge
+8	9	10	r	exedge
+9	10	11	c	exedge
+10	12	14	l	exedge
+11	13	14	r	exedge
+12	14	15	c	exedge
 --exclusive block
