@@ -575,6 +575,13 @@ export default class Tools extends Component {
       )
     })
     switch (this.props.id) {
+      case 0:
+        tools = <div className="tools-menu">
+          <div className="tools-menu2">
+            <button onClick={() => this.changeID(1)}>次へ</button>
+          </div>
+        </div>
+        break
       case 1:
         tools = <div className="tools-menu">
           <div className="tools-menu2">
@@ -592,6 +599,7 @@ export default class Tools extends Component {
             <div onClick={() => this.props.clickDFGModeHandler(8)}><img src={outputIcon} className={output} /></div>
           </div>
           <div className="tools-menu2">
+            <button onClick={() => this.changeID(0)}>前へ</button>
             <button onClick={() => this.changeID(2)}>次へ</button>
           </div>
         </div>

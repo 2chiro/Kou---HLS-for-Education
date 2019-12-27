@@ -43,8 +43,10 @@ p, img, ul, ol {
   background: #2F4F4F;
 }
 
-.canvas {
+.editor {
   flex-grow: 1;
+}
+.canvas {
   background-image: url("./canvas-bg.gif");
 }
 

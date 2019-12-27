@@ -10,17 +10,15 @@ export default class Canvas extends Component {
       ratioId: 4, ratio: [0.4, 0.5, 0.64, 0.82, 1, 1.2, 1.5, 1.8, 2.2, 2.6, 3.2], before_ratio: 1,
       mouse_x: 0, mouse_y: 0, origin_x: 0, origin_y: 0,
       selectNode: [], selectEdge: false, selectEdgeStore: [],
-      width: null, height: null
+      width: this.props.width, height: this.props.width
     }
-  }
-  updateDimensions () {
-    this.setState({width: this.canvas.clientWidth, height: this.canvas.clientHeight})
   }
   componentDidMount () {
     if (!this.canvas) return
-    this.updateDimensions()
-    window.addEventListener('resize', this.updateDimensions.bind(this))
     this.initCanvas()
+  }
+  componentWillUnmount () {
+    cancelAnimationFrame(this.animationIds)
   }
   initCanvas () {
     if (!this.ctx) this.ctx = this.canvas.getContext("2d")
@@ -53,26 +51,421 @@ export default class Canvas extends Component {
     const ALUValue = nodeInfo.ALUValue
     var targetALUNode = []
 
-    const inputNode = nodeInfo.inputNode
-    const inputX = nodeInfo.inputX
-    const inputY = nodeInfo.inputY
-    const outputNode = nodeInfo.outputNode
-    const outputX = nodeInfo.outputX
-    const outputY = nodeInfo.outputY
-    const aluNode = nodeInfo.aluNode
-    const aluX = nodeInfo.aluX
-    const aluY = nodeInfo.aluY
-    const regNode = nodeInfo.regNode
-    const regX = nodeInfo.regX
-    const muxNode = nodeInfo.muxNode
-    const muxX = nodeInfo.muxX
-    const muxY = nodeInfo.muxY
-    const rtlNode = nodeInfo.rtlNode
-    const rtlLine1 = nodeInfo.rtlLine1
-    const rtlLine2 = nodeInfo.rtlLine2
-    const rtlLine3 = nodeInfo.rtlLine3
-    const tmux = nodeInfo.tmux
+    if (this.props.id > 0) {
+      if (this.props.id > 1 && this.props.id < 4) {
+        // サイクル線描画
+        for (var i = 0; i < cycle; i++) {
+          ctx.strokeStyle = "rgb(47, 79, 79)"
+          ctx.lineWidth = "1px"
+          ctx.beginPath()
+          ctx.moveTo(0, (nodeMinY + 60 + (120 * i) - this.state.origin_y) * ratio)
+          ctx.lineTo(this.canvas.width, (nodeMinY + 60 + (120 * i) - this.state.origin_y) * ratio)
+          ctx.closePath()
+          ctx.stroke()
+        }
+        //ライフタイム描画
+        if (this.props.id >= 3) {
+          var fontSize = 16 * ratio
+          var font = fontSize + "px 'Times New Roman'"
+  
+          for (var i = 0; i < reg; i++) {
+            if (i > 0) {
+              ctx.strokeStyle = "rgb(47, 79, 79)"
+              ctx.lineWidth = "2px"
+              ctx.beginPath()
+              ctx.setLineDash([8, 8])
+              ctx.moveTo((nodeMaxX + 90 + 40 * i - this.state.origin_x) * ratio, (nodeMinY - this.state.origin_y) * ratio)
+              ctx.lineTo((nodeMaxX + 90 + 40 * i - this.state.origin_x) * ratio, (nodeMinY + 120 * cycle - this.state.origin_y) * ratio)
+              ctx.stroke()
+              ctx.closePath()
+              ctx.setLineDash([0, 0])
+              ctx.lineDashOffset = 0
+            }
+          }
+          for (var i in registerX) {
+            if (registerX[i] !== 'none' && registerY[i] !== 'none') {
+              ctx.fillStyle = "rgb(255, 255, 255)"
+              ctx.strokeStyle = "rgb(0, 0, 0)"
+              ctx.fillRect((registerX[i] - this.state.origin_x) * ratio, (registerY[i] - this.state.origin_y) * ratio, 20 * ratio, 120 * (endEdge[i] - startEdge[i]) * ratio)
+              ctx.strokeRect((registerX[i] - this.state.origin_x) * ratio, (registerY[i] - this.state.origin_y) * ratio, 20 * ratio, 120 * (endEdge[i] - startEdge[i]) * ratio)
+              ctx.font = font
+              ctx.fillStyle = "rgb(0, 0, 0)"
+              ctx.fillText(i, (registerX[i] + 10 - this.state.origin_x) * ratio, (registerY[i] + 60 - this.state.origin_y) * ratio)
+            }
+          }
+        }
+      }
 
+      // DFG描画
+      if (this.props.id < 4) {
+        // ポート選択描画
+        if (this.state.selectEdge) {
+          ctx.lineWidth = "2px"
+          ctx.beginPath()
+          ctx.moveTo(this.state.mouse_x, this.state.mouse_y)
+          switch (this.state.selectEdgeStore[1]) {
+            case 0:
+              ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y + 35) * ratio)
+              break
+            case 1:
+              ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x - 20) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y - 35) * ratio)
+              break
+            case 2:
+              ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x + 20) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y - 35) * ratio)
+            break
+            case 3:
+              ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y - 35) * ratio)
+              break
+          }
+        ctx.closePath()
+          ctx.stroke()
+        }
+
+        // ポート接続線描画
+        for (var i in nodeEdge1) {
+          ctx.lineWidth = "2px"
+          var fontSize = 16 * ratio
+          var font = fontSize + "px 'Times New Roman'"
+          ctx.fillStyle = "rgb(0, 0, 139)"
+          ctx.beginPath()
+          ctx.moveTo((nodeX[nodeEdge1[i]] - this.state.origin_x) * ratio, (nodeY[nodeEdge1[i]] - this.state.origin_y + 35) * ratio)
+          switch (nodeEdgeType[i]) {
+            case 'l':
+              ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x - 20) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
+              ctx.font = font
+              ctx.fillText(i, ((nodeX[nodeEdge1[i]] + nodeX[nodeEdge2[i]]) / 2 - this.state.origin_x - 20) * ratio,
+                ((nodeY[nodeEdge1[i]] + nodeY[nodeEdge2[i]]) / 2 - this.state.origin_y) * ratio)
+              break
+            case 'r':
+              ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x + 20) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
+              ctx.font = font
+              ctx.fillText(i, ((nodeX[nodeEdge1[i]] + nodeX[nodeEdge2[i]]) / 2 - this.state.origin_x + 20) * ratio,
+                ((nodeY[nodeEdge1[i]] + nodeY[nodeEdge2[i]]) / 2 - this.state.origin_y) * ratio)
+              break
+            case 'c':
+              ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
+              ctx.font = font
+              ctx.fillText(i, ((nodeX[nodeEdge1[i]] + nodeX[nodeEdge2[i]]) / 2 - this.state.origin_x + 20) * ratio,
+                ((nodeY[nodeEdge1[i]] + nodeY[nodeEdge2[i]]) / 2 - this.state.origin_y) * ratio)
+                break
+            }
+          ctx.closePath()
+          ctx.stroke()
+        }
+
+        // ノード描画
+        for (var i in nodeType) {
+          switch (nodeType[i]) {
+            case 'A':
+              if (targetALUNode.indexOf(Number(i)) === -1) {
+                drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
+              } else {
+                drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1, this.props.id)
+              }
+              break
+            case 'S':
+              if (targetALUNode.indexOf(Number(i)) === -1) {
+                drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
+              } else {
+                drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1, this.props.id)
+              }
+              break
+            case 'M':
+              if (targetALUNode.indexOf(Number(i)) === -1) {
+                drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
+              } else {
+                drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1, this.props.id)
+              }
+              break
+            case 'D':
+              if (targetALUNode.indexOf(Number(i)) === -1) {
+                drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
+              } else {
+                drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1, this.props.id)
+              }
+              break
+            case 'I':
+              drawIn(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+              break
+            case 'O':
+            case 'R':
+              drawOut(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+              break
+          }
+        }
+        // マウスカーソル付属描画
+        if (this.state.mouseover) {
+          switch (this.props.id) {
+            case 1:
+              switch (this.props.dfgMode) {
+                case 3:
+                  drawAdd(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
+                  break
+                case 4:
+                  drawSub(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
+                  break
+                case 5:
+                  drawMulti(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
+                  break
+                case 6:
+                  drawDiv(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
+                  break
+                case 7:
+                  drawIn(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
+                  break
+                case 8:
+                  drawOut(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
+                  break
+              }
+              break;
+            default:
+              break;
+          }
+        }
+        function drawAdd(ctx, x, y, ratio, i, id) {
+          //下部接続線
+          ctx.strokeStyle = "rgb(20, 20, 20)"
+          ctx.lineWidth = "2px"
+          ctx.beginPath()
+          ctx.moveTo(x, y)
+          ctx.lineTo(x, y + (35 * ratio))
+          ctx.closePath()
+          ctx.stroke()
+          ctx.fillStyle = "rgb(200 ,100 ,40)"
+          ctx.beginPath()
+          ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          //上部接続線
+          ctx.fillStyle = "rgb(40, 100, 200)"
+          ctx.beginPath()
+          ctx.moveTo(x, y)
+          ctx.lineTo(x + (20 * ratio), y - (35 * ratio))
+          ctx.closePath()
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.moveTo(x, y)
+          ctx.lineTo(x - (20 * ratio), y - (35 * ratio))
+          ctx.closePath()
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          //中央
+          if (i === 1 && id == 3) {
+            ctx.fillStyle = "rgb(220, 20, 20)"
+          } else {
+            ctx.fillStyle = "rgb(220, 220, 220)"
+          }
+          ctx.beginPath()
+          ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          ctx.fillStyle = "rgb(20, 20, 20)"
+          ctx.font = 24 * ratio + "px sans-serif"
+          ctx.textAlign = "center"
+          ctx.textBaseline = "middle"
+          ctx.fillText("＋", x, y)
+        }
+        function drawSub(ctx, x, y, ratio, i, id) {
+          //下部接続線
+          ctx.strokeStyle = "rgb(20, 20, 20)"
+          ctx.lineWidth = "2px"
+          ctx.beginPath()
+          ctx.moveTo(x, y)
+          ctx.lineTo(x, y + (35 * ratio))
+          ctx.closePath()
+          ctx.stroke()
+          ctx.fillStyle = "rgb(200 ,100 ,40)"
+          ctx.beginPath()
+          ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          //上部接続線
+          ctx.fillStyle = "rgb(40, 100, 200)"
+          ctx.beginPath()
+          ctx.moveTo(x, y)
+          ctx.lineTo(x + (20 * ratio), y - (35 * ratio))
+          ctx.closePath()
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.moveTo(x, y)
+          ctx.lineTo(x - (20 * ratio), y - (35 * ratio))
+          ctx.closePath()
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          //中央
+          if (i === 1 && id == 3) {
+            ctx.fillStyle = "rgb(220, 20, 20)"
+          } else {
+            ctx.fillStyle = "rgb(220, 220, 220)"
+          }
+          ctx.beginPath()
+          ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          ctx.fillStyle = "rgb(20, 20, 20)"
+          ctx.font = 24 * ratio + "px sans-serif"
+          ctx.textAlign = "center"
+          ctx.textBaseline = "middle"
+          ctx.fillText("ー", x, y)
+        }
+        function drawMulti(ctx, x, y, ratio, i, id) {
+          //下部接続線
+          ctx.strokeStyle = "rgb(20, 20, 20)"
+          ctx.lineWidth = "2px"
+          ctx.beginPath()
+          ctx.moveTo(x, y)
+          ctx.lineTo(x, y + (35 * ratio))
+          ctx.closePath()
+          ctx.stroke()
+          ctx.fillStyle = "rgb(200, 100, 40)"
+          ctx.beginPath()
+          ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          //上部接続線
+          ctx.fillStyle = "rgb(40, 100, 200)"
+          ctx.beginPath()
+          ctx.moveTo(x, y)
+          ctx.lineTo(x + (20 * ratio), y - (35 * ratio))
+          ctx.closePath()
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.moveTo(x, y)
+          ctx.lineTo(x - (20 * ratio), y - (35 * ratio))
+          ctx.closePath()
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          //中央
+          if (i === 1 && id == 3) {
+            ctx.fillStyle = "rgb(220, 20, 20)"
+          } else {
+            ctx.fillStyle = "rgb(220, 220, 220)"
+          }
+          ctx.beginPath()
+          ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          ctx.fillStyle = "rgb(20, 20, 20)"
+          ctx.font = 24 * ratio + "px sans-serif"
+          ctx.textAlign = "center"
+          ctx.textBaseline = "middle"
+          ctx.fillText("×", x, y)
+        }
+        function drawDiv(ctx, x, y, ratio, i, id) {
+          //下部接続線
+          ctx.strokeStyle = "rgb(20, 20, 20)"
+          ctx.lineWidth = "2px"
+          ctx.beginPath()
+          ctx.moveTo(x, y)
+          ctx.lineTo(x, y + (35 * ratio))
+          ctx.closePath()
+          ctx.stroke()
+          ctx.fillStyle = "rgb(200, 100, 40)"
+          ctx.beginPath()
+          ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          //上部接続線
+          ctx.fillStyle = "rgb(40, 100, 200)"
+          ctx.beginPath()
+          ctx.moveTo(x, y)
+          ctx.lineTo(x + (20 * ratio), y - (35 * ratio))
+          ctx.closePath()
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.moveTo(x, y)
+          ctx.lineTo(x - (20 * ratio), y - (35 * ratio))
+          ctx.closePath()
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          ctx.beginPath()
+          ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          //中央
+          if (i === 1 && id == 3) {
+            ctx.fillStyle = "rgb(220, 20, 20)"
+          } else {
+            ctx.fillStyle = "rgb(220, 220, 220)"
+          }
+          ctx.beginPath()
+          ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          ctx.fillStyle = "rgb(20, 20, 20)"
+          ctx.font = 24 * ratio + "px sans-serif"
+          ctx.textAlign = "center"
+          ctx.textBaseline = "middle"
+          ctx.fillText("÷", x, y)
+        }
+        function drawIn (ctx, x, y, ratio) {
+          //下部接続線
+          ctx.strokeStyle = "rgb(20, 20, 20)"
+          ctx.lineWidth = "2px"
+          ctx.beginPath()
+          ctx.moveTo(x, y)
+          ctx.lineTo(x, y + (35 * ratio))
+          ctx.closePath()
+          ctx.stroke()
+          ctx.fillStyle = "rgb(200, 100, 40)"
+          ctx.beginPath()
+          ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          //中央
+          ctx.fillStyle = "rgb(40, 100, 200)"
+          ctx.beginPath()
+          ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+        }
+        function drawOut (ctx, x, y, ratio) {
+          //上部接続線
+          ctx.strokeStyle = "rgb(20, 20, 20)"
+          ctx.lineWidth = "2px"
+          ctx.beginPath()
+          ctx.moveTo(x, y)
+          ctx.lineTo(x, y - (35 * ratio))
+          ctx.closePath()
+          ctx.stroke()
+          ctx.fillStyle = "rgb(40, 100, 200)"
+          ctx.beginPath()
+          ctx.arc(x, y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+          //中央
+          ctx.fillStyle = "rgb(200, 100, 40)"
+          ctx.beginPath()
+          ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
+          ctx.fill()
+          ctx.stroke()
+        }
+      }
+    }
     for (var i in useALU) {
       if (useALU[i].name === ALUValue) {
         targetALUNode = useALU[i].node
@@ -80,52 +473,27 @@ export default class Canvas extends Component {
       }
     }
 
-    if (this.props.id > 1 && this.props.id < 4) {
-      // サイクル線描画
-      for (var i = 0; i < cycle; i++) {
-        ctx.strokeStyle = "rgb(47, 79, 79)"
-        ctx.lineWidth = "1px"
-        ctx.beginPath()
-        ctx.moveTo(0, (nodeMinY + 60 + (120 * i) - this.state.origin_y) * ratio)
-        ctx.lineTo(this.canvas.width, (nodeMinY + 60 + (120 * i) - this.state.origin_y) * ratio)
-        ctx.closePath()
-        ctx.stroke()
-      }
-      //ライフタイム描画
-      if (this.props.id >= 3) {
-        var fontSize = 16 * ratio
-        var font = fontSize + "px 'Times New Roman'"
-
-        for (var i = 0; i < reg; i++) {
-          if (i > 0) {
-            ctx.strokeStyle = "rgb(47, 79, 79)"
-            ctx.lineWidth = "2px"
-            ctx.beginPath()
-            ctx.setLineDash([8, 8])
-            ctx.moveTo((nodeMaxX + 90 + 40 * i - this.state.origin_x) * ratio, (nodeMinY - this.state.origin_y) * ratio)
-            ctx.lineTo((nodeMaxX + 90 + 40 * i - this.state.origin_x) * ratio, (nodeMinY + 120 * cycle - this.state.origin_y) * ratio)
-            ctx.stroke()
-            ctx.closePath()
-            ctx.setLineDash([0, 0])
-            ctx.lineDashOffset = 0
-          }
-        }
-        for (var i in registerX) {
-          if (registerX[i] !== 'none' && registerY[i] !== 'none') {
-            ctx.fillStyle = "rgb(255, 255, 255)"
-            ctx.strokeStyle = "rgb(0, 0, 0)"
-            ctx.fillRect((registerX[i] - this.state.origin_x) * ratio, (registerY[i] - this.state.origin_y) * ratio, 20 * ratio, 120 * (endEdge[i] - startEdge[i]) * ratio)
-            ctx.strokeRect((registerX[i] - this.state.origin_x) * ratio, (registerY[i] - this.state.origin_y) * ratio, 20 * ratio, 120 * (endEdge[i] - startEdge[i]) * ratio)
-            ctx.font = font
-            ctx.fillStyle = "rgb(0, 0, 0)"
-            ctx.fillText(i, (registerX[i] + 10 - this.state.origin_x) * ratio, (registerY[i] + 60 - this.state.origin_y) * ratio)
-          }
-        }
-      }
-    }
-
     // RTL描画
     if (this.props.id === 4) {
+      const inputNode = nodeInfo.inputNode
+      const inputX = nodeInfo.inputX
+      const inputY = nodeInfo.inputY
+      const outputNode = nodeInfo.outputNode
+      const outputX = nodeInfo.outputX
+      const outputY = nodeInfo.outputY
+      const aluNode = nodeInfo.aluNode
+      const aluX = nodeInfo.aluX
+      const aluY = nodeInfo.aluY
+      const regNode = nodeInfo.regNode
+      const regX = nodeInfo.regX
+      const muxNode = nodeInfo.muxNode
+      const muxX = nodeInfo.muxX
+      const muxY = nodeInfo.muxY
+      const rtlNode = nodeInfo.rtlNode
+      const rtlLine1 = nodeInfo.rtlLine1
+      const rtlLine2 = nodeInfo.rtlLine2
+      const rtlLine3 = nodeInfo.rtlLine3
+      const tmux = nodeInfo.tmux
       // 演算器描画
       for (var i in aluNode) {
         var x = (aluX[i] - this.state.origin_x) * ratio
@@ -571,375 +939,7 @@ export default class Canvas extends Component {
       }
     }
 
-    // DFG描画
-    if (this.props.id > 0 && this.props.id < 4) {
-      // ポート選択描画
-      if (this.state.selectEdge) {
-        ctx.lineWidth = "2px"
-        ctx.beginPath()
-        ctx.moveTo(this.state.mouse_x, this.state.mouse_y)
-        switch (this.state.selectEdgeStore[1]) {
-          case 0:
-            ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y + 35) * ratio)
-            break
-          case 1:
-            ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x - 20) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y - 35) * ratio)
-            break
-          case 2:
-            ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x + 20) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y - 35) * ratio)
-            break
-          case 3:
-            ctx.lineTo((nodeX[this.state.selectEdgeStore[0]] - this.state.origin_x) * ratio, (nodeY[this.state.selectEdgeStore[0]] - this.state.origin_y - 35) * ratio)
-            break
-        }
-        ctx.closePath()
-        ctx.stroke()
-      }
-
-      // ポート接続線描画
-      for (var i in nodeEdge1) {
-        ctx.lineWidth = "2px"
-        var fontSize = 16 * ratio
-        var font = fontSize + "px 'Times New Roman'"
-        ctx.fillStyle = "rgb(0, 0, 139)"
-        ctx.beginPath()
-        ctx.moveTo((nodeX[nodeEdge1[i]] - this.state.origin_x) * ratio, (nodeY[nodeEdge1[i]] - this.state.origin_y + 35) * ratio)
-        switch (nodeEdgeType[i]) {
-          case 'l':
-            ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x - 20) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
-            ctx.font = font
-            ctx.fillText(i, ((nodeX[nodeEdge1[i]] + nodeX[nodeEdge2[i]]) / 2 - this.state.origin_x - 20) * ratio,
-            ((nodeY[nodeEdge1[i]] + nodeY[nodeEdge2[i]]) / 2 - this.state.origin_y) * ratio)
-            break
-          case 'r':
-            ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x + 20) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
-            ctx.font = font
-            ctx.fillText(i, ((nodeX[nodeEdge1[i]] + nodeX[nodeEdge2[i]]) / 2 - this.state.origin_x + 20) * ratio,
-            ((nodeY[nodeEdge1[i]] + nodeY[nodeEdge2[i]]) / 2 - this.state.origin_y) * ratio)
-            break
-          case 'c':
-            ctx.lineTo((nodeX[nodeEdge2[i]] - this.state.origin_x) * ratio, (nodeY[nodeEdge2[i]] - this.state.origin_y - 35) * ratio)
-            ctx.font = font
-            ctx.fillText(i, ((nodeX[nodeEdge1[i]] + nodeX[nodeEdge2[i]]) / 2 - this.state.origin_x + 20) * ratio,
-            ((nodeY[nodeEdge1[i]] + nodeY[nodeEdge2[i]]) / 2 - this.state.origin_y) * ratio)
-            break
-        }
-        ctx.closePath()
-        ctx.stroke()
-      }
-
-      // ノード描画
-      for (var i in nodeType) {
-        switch (nodeType[i]) {
-          case 'A':
-            if (targetALUNode.indexOf(Number(i)) === -1) {
-              drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
-            } else {
-              drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1, this.props.id)
-            }
-            break
-          case 'S':
-            if (targetALUNode.indexOf(Number(i)) === -1) {
-              drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
-            } else {
-              drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1, this.props.id)
-            }
-            break
-          case 'M':
-            if (targetALUNode.indexOf(Number(i)) === -1) {
-              drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
-            } else {
-              drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1, this.props.id)
-            }
-            break
-          case 'D':
-            if (targetALUNode.indexOf(Number(i)) === -1) {
-              drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
-            } else {
-              drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1, this.props.id)
-            }
-      break
-          case 'I':
-            drawIn(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
-            break
-          case 'O':
-          case 'R':
-            drawOut(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
-            break
-        }
-      }
-      // マウスカーソル付属描画
-      if (this.state.mouseover) {
-        switch (this.props.id) {
-          case 1:
-            switch (this.props.dfgMode) {
-              case 3:
-                drawAdd(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
-                break
-              case 4:
-                drawSub(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
-                break
-              case 5:
-                drawMulti(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
-                break
-              case 6:
-                drawDiv(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
-                break
-              case 7:
-                drawIn(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
-                break
-              case 8:
-                drawOut(ctx, this.state.mouse_x, this.state.mouse_y, ratio)
-                break
-            }
-            break;
-          default:
-            break;
-        }
-      }
-      function drawAdd(ctx, x, y, ratio, i, id) {
-        //下部接続線
-        ctx.strokeStyle = "rgb(20, 20, 20)"
-        ctx.lineWidth = "2px"
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-        ctx.lineTo(x, y + (35 * ratio))
-        ctx.closePath()
-        ctx.stroke()
-        ctx.fillStyle = "rgb(200 ,100 ,40)"
-        ctx.beginPath()
-        ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        //上部接続線
-        ctx.fillStyle = "rgb(40, 100, 200)"
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-        ctx.lineTo(x + (20 * ratio), y - (35 * ratio))
-        ctx.closePath()
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-        ctx.lineTo(x - (20 * ratio), y - (35 * ratio))
-        ctx.closePath()
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        //中央
-        if (i === 1 && id == 3) {
-          ctx.fillStyle = "rgb(220, 20, 20)"
-        } else {
-          ctx.fillStyle = "rgb(220, 220, 220)"
-        }
-        ctx.beginPath()
-        ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        ctx.fillStyle = "rgb(20, 20, 20)"
-        ctx.font = 24 * ratio + "px sans-serif"
-        ctx.textAlign = "center"
-        ctx.textBaseline = "middle"
-        ctx.fillText("＋", x, y)
-      }
-      function drawSub(ctx, x, y, ratio, i, id) {
-        //下部接続線
-        ctx.strokeStyle = "rgb(20, 20, 20)"
-        ctx.lineWidth = "2px"
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-        ctx.lineTo(x, y + (35 * ratio))
-        ctx.closePath()
-        ctx.stroke()
-        ctx.fillStyle = "rgb(200 ,100 ,40)"
-        ctx.beginPath()
-        ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        //上部接続線
-        ctx.fillStyle = "rgb(40, 100, 200)"
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-        ctx.lineTo(x + (20 * ratio), y - (35 * ratio))
-        ctx.closePath()
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-        ctx.lineTo(x - (20 * ratio), y - (35 * ratio))
-        ctx.closePath()
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        //中央
-        if (i === 1 && id == 3) {
-          ctx.fillStyle = "rgb(220, 20, 20)"
-        } else {
-          ctx.fillStyle = "rgb(220, 220, 220)"
-        }
-        ctx.beginPath()
-        ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        ctx.fillStyle = "rgb(20, 20, 20)"
-        ctx.font = 24 * ratio + "px sans-serif"
-        ctx.textAlign = "center"
-        ctx.textBaseline = "middle"
-        ctx.fillText("ー", x, y)
-      }
-      function drawMulti(ctx, x, y, ratio, i, id) {
-        //下部接続線
-        ctx.strokeStyle = "rgb(20, 20, 20)"
-        ctx.lineWidth = "2px"
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-        ctx.lineTo(x, y + (35 * ratio))
-        ctx.closePath()
-        ctx.stroke()
-        ctx.fillStyle = "rgb(200, 100, 40)"
-        ctx.beginPath()
-        ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        //上部接続線
-        ctx.fillStyle = "rgb(40, 100, 200)"
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-        ctx.lineTo(x + (20 * ratio), y - (35 * ratio))
-        ctx.closePath()
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-        ctx.lineTo(x - (20 * ratio), y - (35 * ratio))
-        ctx.closePath()
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        //中央
-        if (i === 1 && id == 3) {
-          ctx.fillStyle = "rgb(220, 20, 20)"
-        } else {
-          ctx.fillStyle = "rgb(220, 220, 220)"
-        }
-        ctx.beginPath()
-        ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        ctx.fillStyle = "rgb(20, 20, 20)"
-        ctx.font = 24 * ratio + "px sans-serif"
-        ctx.textAlign = "center"
-        ctx.textBaseline = "middle"
-        ctx.fillText("×", x, y)
-      }
-      function drawDiv(ctx, x, y, ratio, i, id) {
-        //下部接続線
-        ctx.strokeStyle = "rgb(20, 20, 20)"
-        ctx.lineWidth = "2px"
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-        ctx.lineTo(x, y + (35 * ratio))
-        ctx.closePath()
-        ctx.stroke()
-        ctx.fillStyle = "rgb(200, 100, 40)"
-        ctx.beginPath()
-        ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        //上部接続線
-        ctx.fillStyle = "rgb(40, 100, 200)"
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-        ctx.lineTo(x + (20 * ratio), y - (35 * ratio))
-        ctx.closePath()
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-        ctx.lineTo(x - (20 * ratio), y - (35 * ratio))
-        ctx.closePath()
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        //中央
-        if (i === 1 && id == 3) {
-          ctx.fillStyle = "rgb(220, 20, 20)"
-        } else {
-          ctx.fillStyle = "rgb(220, 220, 220)"
-        }
-        ctx.beginPath()
-        ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        ctx.fillStyle = "rgb(20, 20, 20)"
-        ctx.font = 24 * ratio + "px sans-serif"
-        ctx.textAlign = "center"
-        ctx.textBaseline = "middle"
-        ctx.fillText("÷", x, y)
-      }
-      function drawIn (ctx, x, y, ratio) {
-        //下部接続線
-        ctx.strokeStyle = "rgb(20, 20, 20)"
-        ctx.lineWidth = "2px"
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-        ctx.lineTo(x, y + (35 * ratio))
-        ctx.closePath()
-        ctx.stroke()
-        ctx.fillStyle = "rgb(200, 100, 40)"
-        ctx.beginPath()
-        ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        //中央
-        ctx.fillStyle = "rgb(40, 100, 200)"
-        ctx.beginPath()
-        ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-      }
-      function drawOut (ctx, x, y, ratio) {
-        //上部接続線
-        ctx.strokeStyle = "rgb(20, 20, 20)"
-        ctx.lineWidth = "2px"
-        ctx.beginPath()
-        ctx.moveTo(x, y)
-        ctx.lineTo(x, y - (35 * ratio))
-        ctx.closePath()
-        ctx.stroke()
-        ctx.fillStyle = "rgb(40, 100, 200)"
-        ctx.beginPath()
-        ctx.arc(x, y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-        //中央
-        ctx.fillStyle = "rgb(200, 100, 40)"
-        ctx.beginPath()
-        ctx.arc(x, y, 20 * ratio, 0, Math.PI * 2, false)
-        ctx.fill()
-        ctx.stroke()
-      }
-    }
+    
   }
   doMouseMove (e) {
     var x = e.clientX - this.canvas.offsetLeft
@@ -1143,8 +1143,8 @@ export default class Canvas extends Component {
       <canvas
         className="canvas"
         ref={(e) => { this.canvas = e }}
-        width={this.state.width}
-        height={this.state.height}
+        width={this.props.width}
+        height={this.props.height}
         onMouseMove={e => this.doMouseMove(e)}
         onMouseOver={doMouseOver}
         onMouseOut={doMouseOut}

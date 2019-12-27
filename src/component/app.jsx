@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 
 import Tools from '../container/tools'
-import Canvas from '../container/canvas'
+import Editor from '../container/editor'
 import Navigator from '../container/navigator'
 import Explorer from '../container/explorer'
 
@@ -18,7 +18,7 @@ export default class App extends Component {
         </div>
         <div className="right">
           <Navigator />
-          <Canvas />
+          <Editor />
         </div>
       </div>
     )

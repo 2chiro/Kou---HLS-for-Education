@@ -1,12 +1,16 @@
 import { start } from "repl"
 
 const initialState = {
-    id: 1,
+    id: 0,
     dfgMode: 0,
     selectTabId: 0,
     nodeInfo: [
         {
             nodeName: 'noname',
+            // --- Cエディタ用 --- 
+            code: [['#include <stdio.h>'],
+                ['void noname()'],
+                ['{'],[''],['}']],
             // --- DFG用 ---
             nodeType: [], nodeX: [], nodeY: [], nodeTime: [],
             cycle: 0, nodeMinY: 0, nodeMaxX: 0, nodeMinX: 0,
@@ -33,6 +37,9 @@ export default function reducer (state = initialState, action) {
             var node = state.nodeInfo[state.selectTabId]
             node = {
                 nodeName: 'noname',
+                code: [['#include <stdio.h>'],
+                    ['void noname()'],
+                    ['{'],[''],['}']],
                 nodeType: [], nodeX: [], nodeY: [], nodeTime: [],
                 cycle: 0, nodeMinY: 0, nodeMaxX: 0,
                 add: 1, sub: 1, mult: 1, div: 1, reg: 0,
