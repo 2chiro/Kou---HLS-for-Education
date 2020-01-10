@@ -50,6 +50,12 @@ export default class Canvas extends Component {
     const useALU = nodeInfo.useALU
     const ALUValue = nodeInfo.ALUValue
     var targetALUNode = []
+    for (var i in useALU) {
+      if (useALU[i].name === ALUValue) {
+        targetALUNode = useALU[i].node
+        break
+      }
+    }
 
     if (this.props.id > 0) {
       if (this.props.id > 1 && this.props.id < 4) {
@@ -464,12 +470,6 @@ export default class Canvas extends Component {
           ctx.fill()
           ctx.stroke()
         }
-      }
-    }
-    for (var i in useALU) {
-      if (useALU[i].name === ALUValue) {
-        targetALUNode = useALU[i].node
-        break
       }
     }
 

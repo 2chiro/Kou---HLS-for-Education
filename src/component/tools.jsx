@@ -404,13 +404,13 @@ export default class Tools extends Component {
         if (result === 'Complete') {
           const __dirname = path.resolve()
 
-          f0(this.props).then(f1)
+          f0(this.props, target).then(f1)
             .then((response) => {
               console.log(response)
               console.log("BIND_END")
           })
 
-          function f0 (props) {
+          function f0 (props, target) {
             return new Promise ((resolve, reject) => {
               if (target.newsdfg) {
                 const sdfgPath = path.join(__dirname, 'noname/sdfg.dat')
@@ -461,13 +461,15 @@ export default class Tools extends Component {
                     }
                   }
                 })
+              } else {
+                resolve(props, 'f0 => f1')
               }
             })
           }
           
           function f1 (props, passVal) {
             return new Promise ((resolve, reject) => {
-              console.log(passVal)
+              console.log(props)
               const bindPath = path.join(__dirname, 'noname/bind.dat')
               const bindFile = fs.createReadStream(bindPath, 'utf8')
               const bindLine = readLine.createInterface(bindFile, {})
