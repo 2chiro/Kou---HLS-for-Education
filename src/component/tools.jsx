@@ -42,6 +42,81 @@ export default class Tools extends Component {
   }
   changeID (num) {
     switch (num) {
+      case 1:
+        if (this.props.id === 0) {
+
+          fc0(this.props).then(fc1)
+          .then((response) => {
+            console.log(response)
+            console.log("C_DFG_END")
+          })
+
+          function fc0 (props) {
+            return new Promise ((resolve, reject) => {
+              try {
+                const node = this.props.nodeInfo[this.props.selectTabId]
+                const __dirname = path.resolve()
+                const cPath = path.join(__dirname, 'noname/noname.c')
+                const cFile = fs.createWriteStream(cPath, 'utf8')
+                cFile.write(node.code)
+                cFile.end()
+      
+              } catch (err) {
+                console.log(err)
+              }
+              resolve(props, "f0 ==> f1")
+            })
+          }
+
+          function fc1 (props, passVal) {
+            return new Promise ((resolve, reject) => {
+              console.log(passVal)
+              ipcRenderer.send('dfg')
+              ipcRenderer.on('end_dfg', (event, result) => {
+                console.log(result)
+                if (result === 'Complete') {
+                  const __dirname = path.resolve()
+                  const dfgPath = path.join(__dirname, 'noname/dfg.dat')
+                  const dfgFile = fs.createReadStream(dfgPath, 'utf8')
+                  const dfgLine = readLine.createInterface(dfgFile, {})
+                  var vertex = false
+                  var edge = false
+                  var separator = /\s+/
+                  var nodeType = []
+                  var nodeX = []
+                  var nodeY = []
+                  var nodeEdge1 = []
+                  var nodeEdge2 = []
+                  var nodeEdgeType = []
+                  dfgLine.on('line', data => {
+                    var str = data.split(separator)
+                    if (str[0] === '--vertex') {
+                      vertex = true
+                      edge = false
+                    } else if (str[0] === '--edge') {
+                      vertex = false
+                      edge = true
+                    } else if (str[0] === '--exclusive') {
+                      props.setNodeTXYHandler(nodeType, nodeX, nodeY, nodeEdge1, nodeEdge2, nodeEdgeType)
+                    } else {
+                      if (vertex) {
+                        nodeType.push(str[1])
+                        nodeX.push(Number(str[2]))
+                        nodeY.push(Number(str[3]))
+                      } else if (edge) {
+                        nodeEdge1.push(Number(str[1]))
+                        nodeEdge2.push(Number(str[2]))
+                        nodeEdgeType.push(str[3])
+                      }
+                    }
+                  })
+                }
+              })
+            })
+          }
+
+
+        }
       case 2:
         if (this.props.id === 1) {
           try {

@@ -135,6 +135,24 @@ const Actions = {
             rtlLine2: cl2, 
             rtlLine3: cl3
         }
+    },
+
+    changeCode: (value) => {
+        return {
+            type: 'CHANGE_CODE',
+            code: value
+        }
+    },
+    setNodeTXY: (nodeType, nodeX, nodeY, nodeEdge1, nodeEdge2, nodeEdgeType) => {
+        return {
+            type: 'SET_NODE_TXY',
+            nodeType: nodeType,
+            nodeX: nodeX,
+            nodeY: nodeY,
+            nodeEdge1: nodeEdge1,
+            nodeEdge2: nodeEdge2,
+            nodeEdgeType: nodeEdgeType
+        }
     }
 }
 

@@ -8,9 +8,8 @@ const initialState = {
         {
             nodeName: 'noname',
             // --- Cエディタ用 --- 
-            code: [['#include <stdio.h>'],
-                ['void noname()'],
-                ['{'],[''],['}']],
+            code: '#include <stdio.h>\nvoid noname(int a, int b, int c, int d, int *out1, int *out2)\n{\nint add1 = a + b;\nint add2 = c * d;\nint add3 = add1 + add2;\nint multi1 = add1*add2;\n*out1 = add3;\n*out2 = multi1;\n}',
+            //code: '#include <stdio.h>\nvoid noname()\n{\n\n}'
             // --- DFG用 ---
             nodeType: [], nodeX: [], nodeY: [], nodeTime: [],
             cycle: 0, nodeMinY: 0, nodeMaxX: 0, nodeMinX: 0,
@@ -37,9 +36,7 @@ export default function reducer (state = initialState, action) {
             var node = state.nodeInfo[state.selectTabId]
             node = {
                 nodeName: 'noname',
-                code: [['#include <stdio.h>'],
-                    ['void noname()'],
-                    ['{'],[''],['}']],
+                code: '#include <stdio.h>\nvoid noname()\n{\n\n}',
                 nodeType: [], nodeX: [], nodeY: [], nodeTime: [],
                 cycle: 0, nodeMinY: 0, nodeMaxX: 0,
                 add: 1, sub: 1, mult: 1, div: 1, reg: 0,
@@ -1050,6 +1047,25 @@ export default function reducer (state = initialState, action) {
 
             node.tmux = tmux_n
             
+            return {
+                ...state,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+            }
+        case 'CHANGE_CODE' :
+            var node = state.nodeInfo[state.selectTabId]
+            node.code = action.code
+            return {
+                ...state,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+            }
+        case 'SET_NODE_TXY' :
+            var node = state.nodeInfo[state.selectTabId]
+            node.nodeType = action.nodeType
+            node.nodeX = action.nodeX
+            node.nodeY = action.nodeY
+            node.nodeEdge1 = action.nodeEdge1
+            node.nodeEdge2 = action.nodeEdge2
+            node.nodeEdgeType = action.nodeEdgeType
             return {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)

@@ -28,6 +28,9 @@ const mapDispatchToProps = dispatch => {
         analysisLifetimeHandler: () => {
             dispatch(Actions.analysisLifetime())
         },
+        setNodeTXYHandler: (nodeType, nodeX, nodeY, nodeEdge1, nodeEdge2, nodeEdgeType) => {
+            dispatch(Actions.setNodeTXY(nodeType, nodeX, nodeY, nodeEdge1, nodeEdge2, nodeEdgeType))
+        },
         setNodeTimeHandler: (nodeTime, cycle) => {
             dispatch(Actions.timeSetNode(nodeTime, cycle))
         },

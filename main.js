@@ -49,6 +49,25 @@ function createWindow () {
   })
 }
 
+ipcMain.on('dfg', (event) => {
+  var algPath = path.join(__dirname, 'algorithms/dfg-generator/start.jar')
+  var cPath = path.join(__dirname, 'noname/noname.c')
+  var dfgPath = path.join(__dirname, 'noname/dfg.dat')
+  
+  console.log(algPath, cPath, dfgPath)
+  exec('java', ['-jar', algPath, cPath, dfgPath], (err, stdout, stderr) => {
+    if (err != null) {
+      console.log(err)
+      var result = 'Error'
+      event.sender.send('end_dfg', result)
+    } else {
+      console.log(stdout)
+      var result = 'Complete'
+      event.sender.send('end_dfg', result)
+    }
+  })
+})
+
 ipcMain.on('scheduling', (event, target, a, s, m, d) => {
   console.log(target)
   var algPath = path.join(__dirname, 'algorithms/scheduling/' + target.path)

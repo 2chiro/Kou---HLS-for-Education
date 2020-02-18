@@ -71,8 +71,8 @@ export default class Canvas extends Component {
         }
         //ライフタイム描画
         if (this.props.id >= 3) {
-          var fontSize = 16 * ratio
-          var font = fontSize + "px 'Times New Roman'"
+          var fontSize = 20 * ratio
+          var font = fontSize + "px 'sans-serif'"
   
           for (var i = 0; i < reg; i++) {
             if (i > 0) {
@@ -90,13 +90,20 @@ export default class Canvas extends Component {
           }
           for (var i in registerX) {
             if (registerX[i] !== 'none' && registerY[i] !== 'none') {
-              ctx.fillStyle = "rgb(255, 255, 255)"
+              if (nodeType[nodeEdge1[i]] === 'I') {
+                ctx.fillStyle = "rgb(0, 0, 255)"
+              } else if (nodeType[nodeEdge2[i]] === 'O') {
+                ctx.fillStyle = "rgb(255, 165, 0)"
+              } else {
+                ctx.fillStyle = "rgb(255, 255, 255)"
+              }
               ctx.strokeStyle = "rgb(0, 0, 0)"
               ctx.fillRect((registerX[i] - this.state.origin_x) * ratio, (registerY[i] - this.state.origin_y) * ratio, 20 * ratio, 120 * (endEdge[i] - startEdge[i]) * ratio)
               ctx.strokeRect((registerX[i] - this.state.origin_x) * ratio, (registerY[i] - this.state.origin_y) * ratio, 20 * ratio, 120 * (endEdge[i] - startEdge[i]) * ratio)
               ctx.font = font
-              ctx.fillStyle = "rgb(0, 0, 0)"
+              ctx.fillStyle = "rgb(255, 255, 255)"
               ctx.fillText(i, (registerX[i] + 10 - this.state.origin_x) * ratio, (registerY[i] + 60 - this.state.origin_y) * ratio)
+              ctx.strokeText(i, (registerX[i] + 10 - this.state.origin_x) * ratio, (registerY[i] + 60 - this.state.origin_y) * ratio)
             }
           }
         }
@@ -130,8 +137,8 @@ export default class Canvas extends Component {
         // ポート接続線描画
         for (var i in nodeEdge1) {
           ctx.lineWidth = "2px"
-          var fontSize = 16 * ratio
-          var font = fontSize + "px 'Times New Roman'"
+          var fontSize = 20 * ratio
+          var font = fontSize + "px 'sans-serif'"
           ctx.fillStyle = "rgb(0, 0, 139)"
           ctx.beginPath()
           ctx.moveTo((nodeX[nodeEdge1[i]] - this.state.origin_x) * ratio, (nodeY[nodeEdge1[i]] - this.state.origin_y + 35) * ratio)
