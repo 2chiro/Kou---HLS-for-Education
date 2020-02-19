@@ -54,7 +54,7 @@ export default class Tools extends Component {
           function fc0 (props) {
             return new Promise ((resolve, reject) => {
               try {
-                const node = this.props.nodeInfo[this.props.selectTabId]
+                const node = props.nodeInfo[props.selectTabId]
                 const __dirname = path.resolve()
                 const cPath = path.join(__dirname, 'noname/noname.c')
                 const cFile = fs.createWriteStream(cPath, 'utf8')
