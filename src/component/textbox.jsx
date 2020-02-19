@@ -6,8 +6,9 @@ export default class TextBox extends Component {
   }
   componentDidMount () {
     var style = document.getElementById('textarea').style
-    style.width = this.props.width
-    style.height = this.props.height
+    style.width = '100%'
+    style.height = '100%'
+    style.resize = 'none'
   }
   doChange (e) {
     this.props.chageCodeHandler(e.target.value)
