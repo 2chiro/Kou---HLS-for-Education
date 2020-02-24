@@ -2,9 +2,10 @@ use warnings;
 #perl <programname> <ARGV0> <ARGC1>
 $sdfg_input = $ARGV[0];
 $binding_input = $ARGV[1];
-$cadformat_output = $ARGV[2];
-$vhdl_output= $ARGV[3];
-$version = "Version 1.2";
+$top_input = $ARGV[2];
+$cf_output = $ARGV[3];
+$vhdl_output = $ARGV[4];
+$version = "Version 3.0";
 #sdfgdata
 @vertex_id = ();
 @vertex_type = ();
@@ -37,6 +38,9 @@ $version = "Version 1.2";
 
 @register_id = ();
 
+@top_upper_id = ();
+@top_bottom_id = ();
+
 @tmp_route_search = ();
 
 $register = 0;
@@ -44,6 +48,8 @@ $add = 0;
 $sub = 0;
 $mult = 0;
 $div = 0;
+
+$output_count = 0;
 
 #Config (True = 1 , Else = 0)
 $Config_Debug_input = 1;
@@ -53,17 +59,20 @@ $Config_Debug_work_vhdl = 0;
 &copy_rights;
 &read_sdfg;
 &read_binding;
+&read_top;
 &debug_input;
 &create_cadformat;
 &debug_cadformat;
 &create_vhdl;
 print ("\nThank you...\n");
+#メモ
+#outputの数はwangtestではないO R を数えている
 
 #copy_rights;
 sub copy_rights {
 	#コピーライトを表示する、ただそれだけ。
 	print ("\n			   $version\n");
-	print ("	 Copyright (c) 2018 by Yoshikawa Laboratory\n");
+	print ("	 Copyright (c) 2018 - 2020 by Yoshikawa Laboratory\n");
 	print ("			ALL RIGHTS RESERVED\n\n");
 	#sleep (2);
 }
@@ -99,6 +108,16 @@ sub read_sdfg {
 		 	$sdfg[$_] =~ s/\n//;
 			$sdfg[$_] =~ s/\s+/,/g;   ##datainput
 			my @list = split(/,/,$sdfg[$_]);
+			eval {
+				if ($list[3] =~ /exop/) {
+					if ($list[1] =~ /O|R/) {
+						$list[1] = "Rrr";
+					}
+				}
+			};
+			if ($list[1] =~ /O/) {
+				$output_count++;
+			}
 			push @vertex_id, $list[0];
 			push @vertex_type, $list[1];
 			push @lifetime, $list[2];
@@ -127,6 +146,30 @@ sub read_sdfg {
 	print"[Log]read_sdfg=>Successful.\n";
 }
 #read_binding;
+sub read_top {
+	#SDFG形式のファイルを読み込む
+	chomp($top_input);
+	open(FH, "$top_input") or die("ERROR[003] : Top file is not found");
+		@intop = <FH>;
+	close(FH);
+
+	foreach(@intop){
+		$_ =~ s/#.+//;   ##remove comments
+		$_ =~ s/^\s*$//;   ##remove empty lines
+	}
+
+	foreach(0 .. $#intop){
+		$intop[$_] =~ s/\r//;
+	 	$intop[$_] =~ s/\n//;
+		$intop[$_] =~ s/\s+/,/g;   ##datainput
+		my @list = split(/,/,$intop[$_]);
+
+		push @top_upper_id, $list[0];
+		push @top_bottom_id, $list[1];
+	}
+
+	print"[Log]read_top=>Successful.\n";
+}
 sub read_binding {
 	#DAT形式のファイルを読み込む
 	chomp($binding_input);
@@ -225,6 +268,8 @@ sub conv_operation_type {
 #create_cadformat;
 sub create_cadformat{
 	#この工程でSDFGとBaindingファイルを１つにした形式のファイルを生成する
+	printf("現在のアウトプットは$output_count\n");
+	&input_top_dummyline;
 	&input_vertex_calculator;
 	&input_edge_register;
 	&create_cf_node;
@@ -232,6 +277,25 @@ sub create_cadformat{
 	&remove_duplicate_line;
 	&add_multiplexer;
 	&arrangement_line;
+}
+sub input_top_dummyline{
+	my $only_out_node = "none";
+	foreach (0 .. $#vertex_id){
+		if ($vertex_type[$_] =~ /O/) {
+			if ($only_out_node =~ /none/){
+				$only_out_node = $_;
+			}
+		}
+	}
+	printf("only_out_nodeは$only_out_node\n");
+	my $sp_af1 = -1;
+	foreach (0 .. $#top_bottom_id){
+		my $sptmp1 = $top_bottom_id[$_];
+		push @edge_id, $#edge_id + 1;
+		push @edge_ver1, $sptmp1;
+		push @edge_ver2, $only_out_node;
+		push @edge_port, 3;
+	}
 }
 sub input_vertex_calculator {
 	#SDFGのVertexデータに具体的な演算器情報を付与・保持する
@@ -300,19 +364,32 @@ sub create_cf_node {
 	# 7 : Div
 	# 8 : multiprexer
 	my $count = 0;
+	my $only_out_node = "none";
 	foreach (0 .. $#vertex_id){
 		if ($vertex_type[$_] =~ /I/) {
 			$vertex_convert_after_id[$_] = $count;
 			push @cf_node_number,$count;
 			push @cf_node_type,1;
 			$count++;
-		}elsif ($vertex_type[$_] =~ /O|R/) {
+		}elsif ($vertex_type[$_] =~ /O/) {
+			if ($only_out_node =~ /none/){
+				$only_out_node = $count;
+			}
 			$vertex_convert_after_id[$_] = $count;
 			push @cf_node_number,$count;
 			push @cf_node_type,2;
 			$count++;
 		}
 	}
+	foreach (0 .. $#vertex_id){
+		if ($vertex_type[$_] =~ /Rrr/) {
+			$vertex_convert_after_id[$_] = $only_out_node;
+			push @cf_node_number,$count;
+			push @cf_node_type,999;
+			$count++;
+		}
+	}
+
 	#register node
 	foreach (1 .. $register){
 		push @cf_node_number,$count;
@@ -430,6 +507,17 @@ sub create_cf_line {
 			}
 		}
 	}
+	#Top
+	#my $sp_af1 = -1;
+	#foreach (0 .. $#top_bottom_id){
+	#	my $sptmp1 = $top_bottom_id[$_];
+	#	$sp_af1 = $vertex_convert_after_id[$sptmp1];
+	#	push @cf_line_out,$only_out_node;
+	#	push @cf_line_in,$sp_af1;
+	#	push @cf_line_port,3;
+	#}
+
+
 }
 sub remove_duplicate_line{
 	#同じところから、同じ場所に接続されている接続線を削除する
@@ -557,10 +645,10 @@ sub create_vhdl{
 
 	$return_text = $tmp_text;
 	#output
-	#my $outputfile = $sdfg_input;
+	my $outputfile = $vhdl_output;
 	#$outputfile =~ s/\.sdfg/\.vhdl/;
-	#print($outputfile);
-	my $file = $vhdl_output;
+	print($outputfile);
+	my $file = $outputfile;
 	open my $fh, '>', $file;
 	print $fh "$return_text";
 	close $fh;
@@ -1420,9 +1508,10 @@ sub debug_cadformat {
 		my $mult_count = 0;
 		my $resister_count = 0;
 
-		##my $outputfile = $sdfg_input;
-		##$outputfile =~ s/\.sdfg/\.cf/;
-		my $file = $cadformat_output;
+		my $outputfile = $cf_output;
+		#$outputfile =~ s/\.sdfg/\.cf/;
+		my $file = $outputfile;
+        print ($file);
 		open my $fh, '>', $file;
 
 		print ("\n---------------[Debug]---------------\n");

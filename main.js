@@ -50,7 +50,7 @@ function createWindow () {
 }
 
 ipcMain.on('dfg', (event) => {
-  var algPath = path.join(__dirname, 'algorithms/dfg-generator/start.jar')
+  var algPath = path.join(__dirname, 'algorithms/dfg-generator.jar')
   var cPath = path.join(__dirname, 'noname/noname.c')
   var dfgPath = path.join(__dirname, 'noname/dfg.dat')
   
@@ -110,13 +110,14 @@ ipcMain.on('binding', (event, target) => {
 })
 
 ipcMain.on('vhdl', (event) => {
-  var algPath = path.join(__dirname, 'algorithms/vhdl/cad-fullvhdl.pl')
+  var algPath = path.join(__dirname, 'algorithms/vhdl-generator.pl')
   var sdfgPath = path.join(__dirname, 'noname/sdfg.dat')
   var bindPath = path.join(__dirname, 'noname/bind.dat')
+  var topPath = path.join(__dirname, 'noname/top.dat')
   var cfPath = path.join(__dirname, 'noname/cf.dat')
   var vhdlPath = path.join(__dirname, 'noname/noname.vhdl')
-  console.log(algPath, sdfgPath, bindPath, cfPath, vhdlPath)
-  exec('perl', [algPath, sdfgPath, bindPath, cfPath, vhdlPath], (err, stdout, stderr) => {
+  console.log(algPath, sdfgPath, bindPath, topPath, cfPath, vhdlPath)
+  exec('perl', [algPath, sdfgPath, bindPath, topPath, cfPath, vhdlPath], (err, stdout, stderr) => {
     if (err != null) {
       console.log(err)
       var result = 'Error'
