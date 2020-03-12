@@ -1,4 +1,4 @@
-# HLS-CAD-ELECTRON
+# Kou - High-level Synthesis for Education
 
 ## Install
 
