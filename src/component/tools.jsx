@@ -1,7 +1,6 @@
 import React, {Component} from 'react'
 import path from 'path'
 import fs from 'fs'
-import readLine from 'readline'
 import classNames from 'classnames'
 import request from 'superagent'
 import {ipcRenderer} from 'electron'
@@ -26,11 +25,13 @@ export default class Tools extends Component {
     this.state = {
       isManualSche: true, isManualBind: true,
       scheList: [], bindList: [],
-      algoScheValue: '', algoBindValue: ''
+      algoScheValue: '', algoBindValue: '',
+      dirPath: null
     }
   }
   componentDidMount () {
     const __dirname = path.resolve()
+    this.setState({dirPath: __dirname})
     var algPath = path.join(__dirname, 'algorithms/algorithms.json')
     request.get(algPath)
       .end( (err, res) => {
@@ -44,85 +45,18 @@ export default class Tools extends Component {
     switch (num) {
       case 1:
         if (this.props.id === 0) {
-
-          fc0(this.props).then(fc1)
-          .then((response) => {
-            console.log(response)
+          ipcRenderer.removeAllListeners('end_dfg')
+          ipcRenderer.send('dfg', this.props.nodeInfo[this.props.selectTabId], this.props.selectTabId)
+          ipcRenderer.on('end_dfg', (event, res) => {
+            this.props.setNodeTXYHandler(res[0],res[1],res[2],res[3],res[4],res[5])
             console.log("C_DFG_END")
           })
-
-          function fc0 (props) {
-            return new Promise ((resolve, reject) => {
-              try {
-                const node = props.nodeInfo[props.selectTabId]
-                const __dirname = path.resolve()
-                const cPath = path.join(__dirname, 'noname/noname.c')
-                const cFile = fs.createWriteStream(cPath, 'utf8')
-                cFile.write(node.code)
-                cFile.end()
-      
-              } catch (err) {
-                console.log(err)
-              }
-              resolve(props, "f0 ==> f1")
-            })
-          }
-
-          function fc1 (props, passVal) {
-            return new Promise ((resolve, reject) => {
-              console.log(passVal)
-              ipcRenderer.send('dfg')
-              ipcRenderer.on('end_dfg', (event, result) => {
-                console.log(result)
-                if (result === 'Complete') {
-                  const __dirname = path.resolve()
-                  const dfgPath = path.join(__dirname, 'noname/dfg.dat')
-                  const dfgFile = fs.createReadStream(dfgPath, 'utf8')
-                  const dfgLine = readLine.createInterface(dfgFile, {})
-                  var vertex = false
-                  var edge = false
-                  var separator = /\s+/
-                  var nodeType = []
-                  var nodeX = []
-                  var nodeY = []
-                  var nodeEdge1 = []
-                  var nodeEdge2 = []
-                  var nodeEdgeType = []
-                  dfgLine.on('line', data => {
-                    var str = data.split(separator)
-                    if (str[0] === '--vertex') {
-                      vertex = true
-                      edge = false
-                    } else if (str[0] === '--edge') {
-                      vertex = false
-                      edge = true
-                    } else if (str[0] === '--exclusive') {
-                      props.setNodeTXYHandler(nodeType, nodeX, nodeY, nodeEdge1, nodeEdge2, nodeEdgeType)
-                    } else {
-                      if (vertex) {
-                        nodeType.push(str[1])
-                        nodeX.push(Number(str[2]))
-                        nodeY.push(Number(str[3]))
-                      } else if (edge) {
-                        nodeEdge1.push(Number(str[1]))
-                        nodeEdge2.push(Number(str[2]))
-                        nodeEdgeType.push(str[3])
-                      }
-                    }
-                  })
-                }
-              })
-            })
-          }
-
-
         }
       case 2:
         if (this.props.id === 1) {
           try {
             const node = this.props.nodeInfo[this.props.selectTabId]
-            const __dirname = path.resolve()
-            const dfgPath = path.join(__dirname, 'noname/dfg.dat')
+            const dfgPath = path.join(this.state.dirPath, 'tmp', '' + this.props.selectTabId, 'dfg.dat')
             const dfgFile = fs.createWriteStream(dfgPath, 'utf8')
             dfgFile.write('--vertex' + '\n')
             for (var i in node.nodeType) {
@@ -146,8 +80,7 @@ export default class Tools extends Component {
 
           try {
             const node = this.props.nodeInfo[this.props.selectTabId]
-            const __dirname = path.resolve()
-            const sdfgPath = path.join(__dirname, 'noname/sdfg.dat')
+            const sdfgPath = path.join(this.state.dirPath, 'tmp', '' + this.props.selectTabId, 'sdfg.dat')
             const sdfgFile = fs.createWriteStream(sdfgPath, 'utf8')
             sdfgFile.write('add.' + '\t' + node.add + '\n')
             sdfgFile.write('sub.' + '\t' + node.sub + '\n')
@@ -173,137 +106,16 @@ export default class Tools extends Component {
         break
       case 4:
         if (this.props.id === 3) {
-
-          f0(this.props).then(f1).then(f2)
-            .then((response) => {
-              console.log(response)
-              console.log("BIND_VHDL_END")
-            })
-          
-          function f0 (props) {
-            return new Promise ((resolve, reject) => {
-              console.log('TEST')
-              props.setRegisterHandler()
-              console.log('TEST1')
-              resolve(props, "f0 ==> f1")
-            })
-          }
-
-          function f1(props, passVal) {
-            return new Promise ((resolve, reject) => {
-              console.log(passVal)
-              try {
-                const node = props.nodeInfo[props.selectTabId]
-                const useRegister = node.useRegister
-                const useALU = node.useALU
-                const __dirname = path.resolve()
-                const bindPath = path.join(__dirname, 'noname/bind.dat')
-                const bindFile = fs.createWriteStream(bindPath, 'utf8')
-                bindFile.write('Register.' + '\t' + node.reg + '\n')
-                bindFile.write('add.' + '\t' + node.add + '\n')
-                bindFile.write('sub.' + '\t' + node.sub + '\n')
-                bindFile.write('mult.' + '\t' + node.mult + '\n')
-                bindFile.write('div.' + '\t' + node.div + '\n')
-                bindFile.write('--register binding' + '\n')
-                for (var i in useRegister) {
-                  var reg_num = Number(i) + 1
-                  bindFile.write(String(reg_num))
-                  for (var j in useRegister[i]) {
-                    bindFile.write('\t' + useRegister[i][j])
-                  }
-                  bindFile.write('\n')
-                }
-                bindFile.write('--operation binding' + '\n')
-                for (var i in useALU) {
-                  var op = useALU[i].name
-                  var opName = op.substr(0, 3)
-                  var opNum = op.substr(3)
-                  switch (opName) {
-                    case '加算器':
-                      bindFile.write('Add' + opNum)
-                      for (var j in useALU[i].node) {
-                        bindFile.write('\t' + useALU[i].node[j])
-                      }
-                      bindFile.write('\n')
-                      break
-                    case '減算器':
-                      bindFile.write('Sub' + opNum)
-                      for (var j in useALU[i].node) {
-                        bindFile.write('\t' + useALU[i].node[j])
-                      }
-                      bindFile.write('\n')
-                      break
-                    case '乗算器':
-                      bindFile.write('Mul' + opNum)
-                      for (var j in useALU[i].node) {
-                        bindFile.write('\t' + useALU[i].node[j])
-                      }
-                      bindFile.write('\n')
-                      break
-                    case '除算器':
-                      bindFile.write('Div' + opNum)
-                      for (var j in useALU[i].node) {
-                        bindFile.write('\t' + useALU[i].node[j])
-                      }
-                      bindFile.write('\n')
-                      break
-                  }
-                }
-                bindFile.write('--exclusive block' + '\n')
-                bindFile.end()
-                resolve(props, "f1 ==> f2")
-              } catch (err) {
-                console.log(err)
-              }
-            })
-            
-          }
-          
-          function f2 (props, passVal) {
-            return new Promise ((resolve, reject) => {
-              console.log(passVal)
-              ipcRenderer.send('vhdl')
-              ipcRenderer.on('end_vhdl', (event, result) => {
-                console.log(result)
-                if (result === 'Complete') {
-                  const __dirname = path.resolve()
-                  const cfPath = path.join(__dirname, 'noname/cf.dat')
-                  const cfFile = fs.createReadStream(cfPath, 'utf8')
-                  const cfLine = readLine.createInterface(cfFile, {})
-                  var separator = /\s+/
-                  var cf_node = false
-                  var cf_line = false
-                  var cn = [], cl1 = [], cl2 = [], cl3 = []
-                  cfLine.on('line', data => {
-                    console.log(data)
-                    var str = data.split(separator)
-                    if (str[0] === '--cadformat-node') {
-                      cf_node = true
-                      cf_line = false
-                    } else if (str[0] === '--cadformat-line') {
-                      cf_node = false
-                      cf_line = true
-                    } else if (str[0] === '--cadformat-end') {
-                      console.log(cn, cl1, cl2, cl3)
-                      props.calculateCFHandler(cn, cl1, cl2, cl3)
-                      resolve("f2")
-                    }
-                    else {
-                      if (cf_node) {
-                        cn.push(Number(str[1]))
-                      }
-                      if (cf_line) {
-                        cl1.push(Number(str[0]))
-                        cl2.push(Number(str[1]))
-                        cl3.push(Number(str[2]))
-                      }
-                    }
-                  })
-                }
-              })
-            })
-            
-          }
+          ipcRenderer.removeAllListeners('end_reg_bind')
+          ipcRenderer.send('vhdl', this.props.nodeInfo[this.props.selectTabId], this.props.selectTabId)
+          ipcRenderer.on('end_reg_bind', (event) => {
+            this.props.setRegisterHandler()
+            console.log("REG_BIND_END")
+          })
+          ipcRenderer.on('end_vhdl', (event, res) => {
+            this.props.calculateCFHandler(res[0],res[1],res[2],res[3])
+            console.log("VHDL_END")
+          })
         }
         break
     }
@@ -432,39 +244,12 @@ export default class Tools extends Component {
     if (!this.state.isManualSche) {
       const node = this.props.nodeInfo[this.props.selectTabId]
       const target = this.state.scheList.find((v) => v.name === this.state.algoScheValue)
-      const add = node.add
-      const sub = node.sub
-      const mult = node.mult
-      const div = node.div
-      ipcRenderer.send('scheduling', target, add, sub, mult, div)
-      ipcRenderer.on('end_scheduling', (event, result) => {
-        console.log(result)
-        if (result === 'Complete') {
-          const __dirname = path.resolve()
-          const sdfgPath = path.join(__dirname, 'noname/sdfg.dat')
-          const sdfgFile = fs.createReadStream(sdfgPath, 'utf8')
-          const sdfgLine = readLine.createInterface(sdfgFile, {})
-          var vertex = false
-          var separator = /\s+/
-          var nodeTime = []
-          var cycle = 0
-          sdfgLine.on('line', data => {
-            var str = data.split(separator)
-            if (str[0] === '--vertex') {
-              vertex = true
-            } else if (str[0] === '--edge') {
-              vertex = false
-            } else if (str[0] === '--exclusive') {
-              cycle = cycle + 1
-              this.props.setNodeTimeHandler(nodeTime, cycle)
-            } else {
-              if (vertex) {
-                nodeTime.push(Number(str[2]))
-                cycle = Number(str[2]) > cycle ? Number(str[2]) : cycle
-              }
-            }
-          })
-        }
+      ipcRenderer.removeAllListeners('end_scheduling')
+      ipcRenderer.send('scheduling', node, target, this.props.selectTabId)
+      ipcRenderer.on('end_scheduling', (event, res) => {
+        console.log(res)
+        this.props.setNodeTimeHandler(res[0], res[1])
+        console.log("SCHEDULING_END")
       })
     }
   }
@@ -472,147 +257,13 @@ export default class Tools extends Component {
     if (!this.state.isManualBind) {
       const node = this.props.nodeInfo[this.props.selectTabId]
       const target = this.state.bindList.find((v) => v.name === this.state.algoBindValue)
-      console.log(target)
-      ipcRenderer.send('binding', target)
-      ipcRenderer.on('end_binding', (event, result) => {
-        console.log(result)
-        if (result === 'Complete') {
-          const __dirname = path.resolve()
-
-          f0(this.props, target).then(f1)
-            .then((response) => {
-              console.log(response)
-              console.log("BIND_END")
-          })
-
-          function f0 (props, target) {
-            return new Promise ((resolve, reject) => {
-              if (target.newsdfg) {
-                const sdfgPath = path.join(__dirname, 'noname/sdfg.dat')
-                const sdfgFile = fs.createReadStream(sdfgPath, 'utf8')
-                const sdfgLine = readLine.createInterface(sdfgFile, {})
-                var separator = /\s+/
-                var nodeType = []
-                var nodeX = []
-                var nodeY = []
-                var nodeTime = []
-                var nodeEdge1 = []
-                var nodeEdge2 = []
-                var nodeEdgeType = []
-                var vertex = false
-                var edge = false
-                var cycle = 0
-                var k = 0
-                sdfgLine.on('line', data => {
-                  var str = data.split(separator)
-                  if (str[0] === '--vertex') {
-                    vertex = true
-                    edge = false
-                  } else if (str[0] === '--edge') {
-                    vertex = false
-                    edge = true
-                  } else if (str[0] === '--exclusive') {
-                    cycle = cycle + 1
-                    props.setSDFGHandler(nodeType, nodeX, nodeY, nodeTime, nodeEdge1, nodeEdge2, nodeEdgeType, cycle)
-                    resolve(props, 'f0 => f1')
-                  } else {
-                    if (vertex) {
-                      cycle = Number(str[2]) > cycle && str[1] !== 'R' ? Number(str[2]) : cycle
-                      nodeType.push(str[1])
-                      nodeTime.push(str[1] === 'I' && Number(str[2]) === -1 ? 0 : Number(str[2]))
-                      if (str[3] === 'exop') {
-                        nodeX.push(node.nodeMinX - 80 * k)
-                        nodeY.push(node.nodeMinY + 120 * Number(str[2]))
-                        k = k + 1
-                      } else {
-                        nodeX.push(Number(str[3]))
-                        nodeY.push(Number(str[4]))
-                      }
-                    }
-                    if (edge) {
-                      nodeEdge1.push(Number(str[1]))
-                      nodeEdge2.push(Number(str[2]))
-                      nodeEdgeType.push(str[3])
-                    }
-                  }
-                })
-              } else {
-                resolve(props, 'f0 => f1')
-              }
-            })
-          }
-          
-          function f1 (props, passVal) {
-            return new Promise ((resolve, reject) => {
-              console.log(props)
-              const bindPath = path.join(__dirname, 'noname/bind.dat')
-              const bindFile = fs.createReadStream(bindPath, 'utf8')
-              const bindLine = readLine.createInterface(bindFile, {})
-              var reg_bind = false
-              var op_bind = false
-              var separator = /\s+/
-              var useRegister = []
-              var useALU = []
-              var reg = 0
-              bindLine.on('line', data => {
-                var str = data.split(separator)
-                if (str[0] === 'Register.') {
-                  reg = Number(str[1])
-                } else if (str[0] === '--register') {
-                  reg_bind = true
-                  op_bind = false
-                } else if (str[0] === '--operation') {
-                  reg_bind = false
-                  op_bind = true
-                } else if (str[0] === '--exclusive') {
-                  props.useRegAndALUHandler(reg, useRegister, useALU)
-                  resolve('f1')
-                } else {
-                  if (reg_bind) {
-                    var r = []
-                    for (var i = 1; i < str.length; i++) {
-                      r.push(Number(str[i]))
-                    }
-                    useRegister.push(r)
-                  }
-                  if (op_bind) {
-                    var op = str[0].substr(0, 3)
-                    var num = str[0].substr(3)
-                    var node = []
-                    switch (op) {
-                      case 'Add':
-                        for (var i = 1; i < str.length; i++) {
-                          node.push(Number(str[i]))
-                        }
-                        useALU.push({name: '加算器' + num, node: node})
-                        break;
-                      case 'Sub':
-                        for (var i = 1; i < str.length; i++) {
-                          node.push(Number(str[i]))
-                        }
-                        useALU.push({name: '減算器' + num, node: node})
-                        break;
-                      case 'Mul':
-                        for (var i = 1; i < str.length; i++) {
-                          node.push(Number(str[i]))
-                        }
-                        useALU.push({name: '乗算器' + num, node: node})
-                        break;
-                      case 'Div':
-                        for (var i = 1; i < str.length; i++) {
-                          node.push(Number(str[i]))
-                        }
-                        useALU.push({name: '除算器' + num, node: node})
-                        break;
-
-                    }
-                  }
-                }
-              })
-            })
-          }
-          
-        }
+      ipcRenderer.removeAllListeners('end_binding')
+      ipcRenderer.send('binding', node, target, this.props.selectTabId)
+      ipcRenderer.on('end_binding', (event, res) => {
+        console.log(res)
+        this.props.setSDFGHandler(res[0], res[1], res[2], res[3],  res[4], res[5], res[6], res[7])
+        this.props.useRegAndALUHandler(res[8], res[9], res[10])
+        console.log("BINDING_END")
       })
     }
   }
@@ -655,7 +306,8 @@ export default class Tools extends Component {
       case 0:
         tools = <div className="tools-menu">
           <div className="tools-menu2">
-            <button onClick={() => this.changeID(1)}>次へ</button>
+            <button onClick={() => this.changeID(1)}>変換</button>
+            <button onClick={() => this.props.clickIDHandler(1)}>スキップ</button>
           </div>
         </div>
         break
@@ -839,7 +491,7 @@ export default class Tools extends Component {
     }
     return (
       <div className="tools">
-        <div className="tools-title"><p>ツール</p></div>
+        <div className="tools-title">ツール</div>
         {tools}
       </div>
      )

@@ -1,25 +1,32 @@
+require('codemirror/lib/codemirror.css');
+require('codemirror/theme/material.css');
+require('codemirror/mode/clike/clike.js');
+
 import React, {Component} from 'react'
+import {Controlled as CodeMirror} from 'react-codemirror2'
+
 
 export default class TextBox extends Component {
   constructor (props) {
     super (props)
   }
-  componentDidMount () {
-    var style = document.getElementById('textarea').style
-    style.width = '100%'
-    style.height = '100%'
-    style.resize = 'none'
-  }
-  doChange (e) {
-    this.props.chageCodeHandler(e.target.value)
-  }
   render () {
+    var options = {
+      mode: 'text/x-csrc',
+      theme: 'material',
+      lineNumbers: true
+    }
     return (
-      <textarea
-        id='textarea'
-        onChange={e => this.doChange(e)}
+      <CodeMirror
         value={this.props.nodeInfo[this.props.selectTabId].code}
-      ></textarea>
+        options={options}
+        onBeforeChange={(editor, data, value) => {
+          this.props.chageCodeHandler(value)
+        }}
+        onChange={(editor, data, value) => {
+          console.log('controlled', {value});
+        }}
+      />
     )
   }
 }

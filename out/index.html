@@ -14,5 +14,17 @@
   <body>
     <div id="root"></div>
     <script src='index.js'></script>
+    <script>
+      const {remote} = require('electron')
+      const Menu = remote.Menu
+      const customTitlebar = require('custom-electron-titlebar');
+      let titlebar = new customTitlebar.Titlebar({
+        backgroundColor: customTitlebar.Color.fromHex('#3A5B52'),
+        shadow: true
+      });
+      titlebar.updateTitle('Kou - High-level Synthesis for Education')
+      const menu = new Menu();
+      titlebar.updateMenu(menu);
+    </script>
   </body>
 </html>

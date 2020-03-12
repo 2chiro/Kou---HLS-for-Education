@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8' />
+    <style>
+      html, body{
+        margin: 0;
+        width: 100%;
+        height: 100%;
+      }
+      form {
+        margin: 5px auto;
+        width: 220px;
+        display: flex;
+        flex-direction: row;
+      }
+      #name {
+        width: 180px;
+      }
+      
+    </style>
+  </head>
+  <body>
+    <form>
+      <input type='text' id='name'></input><br />
+      <input type='submit' id='submit' value="変更" />
+    </form>
+    <script>
+      const electron = require('electron')
+      const {ipcRenderer, remote} = electron
+
+      document.querySelector('form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const { value } = document.querySelector('input');
+        ipcRenderer.send('rename', value);
+      });
+
+      const Menu = remote.Menu
+      const customTitlebar = require('custom-electron-titlebar');
+      let titlebar = new customTitlebar.Titlebar({
+        backgroundColor: customTitlebar.Color.fromHex('#3A5B52'),
+        shadow: false,
+        minimizable: false,
+        maximizable: false,
+        closeable: false,
+        titleHorizontalAlignment: 'left'
+      });
+      titlebar.updateTitle('名前の変更')
+      const menu = new Menu();
+      titlebar.updateMenu(menu);
+    </script>
+  </body>
+</html>

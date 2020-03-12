@@ -1,7 +1,13 @@
 const Actions = {
     new: () => {
-        return{
+        return {
             type: 'NEW'
+        }
+    },
+    open: (node) => {
+        return {
+            type: 'OPEN',
+            node: node
         }
     },
     changeId: (num) => {
@@ -13,6 +19,37 @@ const Actions = {
     changeDfgMode: (num) => {
         return {
             type: 'CHANGE_DFGMODE',
+            value: num
+        }
+    },
+    changeSelectTabId: (num) => {
+        return {
+            type: 'CHANGE_SELECT_TAB_ID',
+            value: num
+        }
+    },
+    changePointTabId: (num) => {
+        return {
+            type: 'CHANGE_POINT_TAB_ID',
+            value: num
+        }
+    },
+    copyNode: (node) => {
+        return {
+            type: 'COPY_NODE',
+            node: node
+        }
+    },
+    renameNode: (num, name) => {
+        return {
+            type: 'RENAME_NODE',
+            value: num,
+            name: name
+        }
+    },
+    deleteNode: (num) => {
+        return {
+            type: 'DELETE_NODE',
             value: num
         }
     },

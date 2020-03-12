@@ -4,12 +4,13 @@ const initialState = {
     id: 0,
     dfgMode: 0,
     selectTabId: 0,
+    pointTabId: null,
     nodeInfo: [
         {
             nodeName: 'noname',
             // --- Cエディタ用 --- 
-            code: '#include <stdio.h>\nvoid noname(int a, int b, int c, int d, int *out1, int *out2)\n{\nint add1 = a + b;\nint add2 = c * d;\nint add3 = add1 + add2;\nint multi1 = add1*add2;\n*out1 = add3;\n*out2 = multi1;\n}',
-            //code: '#include <stdio.h>\nvoid noname()\n{\n\n}'
+            //code: '#include <stdio.h>\nvoid noname(int a, int b, int c, int d, int *out1, int *out2)\n{\nint add1 = a + b;\nint add2 = c * d;\nint add3 = add1 + add2;\nint multi1 = add1*add2;\n*out1 = add3;\n*out2 = multi1;\n}',
+            code: '#include <stdio.h>\nvoid noname()\n{\n\n}',
             // --- DFG用 ---
             nodeType: [], nodeX: [], nodeY: [], nodeTime: [],
             cycle: 0, nodeMinY: 0, nodeMaxX: 0, nodeMinX: 0,
@@ -33,8 +34,8 @@ const initialState = {
 export default function reducer (state = initialState, action) {
     switch (action.type) {
         case 'NEW':
-            var node = state.nodeInfo[state.selectTabId]
-            node = {
+            var nodeInfo = state.nodeInfo
+            var node = {
                 nodeName: 'noname',
                 code: '#include <stdio.h>\nvoid noname()\n{\n\n}',
                 nodeType: [], nodeX: [], nodeY: [], nodeTime: [],
@@ -51,14 +52,43 @@ export default function reducer (state = initialState, action) {
                 rtlNode: [], rtlLine1: [], rtlLine2: [], rtlLine3: [],
                 tmux: 0
             }
+            nodeInfo.push(node)
             return {
-                ...state, id: 1, dfgMode: 0,
-                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+                ...state, id: 0, dfgMode: 0, selectTabId: parseInt(nodeInfo.length)-1,
+                nodeInfo: nodeInfo
             }
+        case 'OPEN':
+            return {...state, nodeInfo: action.node}
         case 'CHANGE_ID':
             return {...state, id: action.value, dfgMode: 0,}
         case 'CHANGE_DFGMODE':
             return {...state, dfgMode: action.value}
+        case 'CHANGE_SELECT_TAB_ID':
+            return {...state, selectTabId: action.value}
+        case 'CHANGE_POINT_TAB_ID':
+            return {...state, pointTabId: action.value}
+        case 'COPY_NODE':
+            var nodeInfo = state.nodeInfo
+            nodeInfo.push(action.node)
+            return {
+                ...state, id: 0, dfgMode: 0, selectTabId: parseInt(nodeInfo.length)-1,
+                nodeInfo: nodeInfo
+            }
+        case 'RENAME_NODE':
+            var node = state.nodeInfo[action.value]
+            node.nodeName = action.name
+            return {
+                ...state,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+            }
+        case 'DELETE_NODE': {
+            var nodeInfo = state.nodeInfo
+            nodeInfo.splice(action.value, 1)
+            return {
+                ...state, id: 0, dfgMode: 0, selectTabId: 0,
+                nodeInfo: nodeInfo
+            }
+        }
         case 'PUT_NODE': 
             var node = state.nodeInfo[state.selectTabId]
             var nodeType = node.nodeType
@@ -1066,6 +1096,15 @@ export default function reducer (state = initialState, action) {
             node.nodeEdge1 = action.nodeEdge1
             node.nodeEdge2 = action.nodeEdge2
             node.nodeEdgeType = action.nodeEdgeType
+            var x, y;
+            for (var i in node.nodeX) {
+                x = i == 0 ? node.nodeX[0] : x
+                x = i > 0 && x < node.nodeX[i] ? node.nodeX[i] : x
+                y = i == 0 ? node.nodeY[0] : y
+                y = i > 0 && y > node.nodeY[i] ? node.nodeY[i] : y
+            }
+            node.nodeMaxX = x
+            node.nodeMinY = y
             return {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)

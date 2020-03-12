@@ -8,7 +8,7 @@
   height: 100%;
 }
 
-p, img, ul, ol {
+div, p, img, ul, ol {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -16,30 +16,37 @@ p, img, ul, ol {
 }
 
 .left {
-  flex-basis: 230px;
+  width: 240px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
 }
 
 .right {
   flex-grow: 1;
+  height: 100%;
   display: flex;
   flex-direction: column;
 }
 
 .explorer {
-  flex-basis: 230px;
+  height: 180px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
   background: #2F4F4F;
 }
 
 .tools {
   flex-grow: 1;
-  height: 100%;
+  min-height: 100%;
   background: #2F4F4F;
 }
 
 .navigator {
-  flex-basis: 15px;
+  height: 54px;
+  flex-grow: 0;
+  flex-shrink: 0;
   background: #2F4F4F;
 }
 
@@ -52,6 +59,8 @@ p, img, ul, ol {
 
 /* エクスプローラー */
 .menu {
+  flex-grow: 0;
+  flex-shrink: 0;
   margin: 10px 5px 10px 5px;
   display: flex;
   flex-direction: row;
@@ -59,25 +68,90 @@ p, img, ul, ol {
 .explorer-icon {
   width: 30px;
   padding: 0 5px;
+  cursor: pointer;
 }
 .exp-title {
+  height: auto;
   width: 100%;
   background-color: #3A5B52;
-}
-.exp-title p {
   padding: 5px;
   font-size: 12px;
   color: white;
 }
+.exp-content {
+  width: 100%;
+  flex-grow: 1;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+}
+.exp-workspace label {
+  margin: 0;
+  padding: 0 10px;
+  font-size: 16px;
+  display: block;
+  color: white;
+  cursor: pointer;
+}
+.exp-workspace label:hover {
+  background-color: rgb(58, 95, 95);
+}
+.exp-workspace input[type=checkbox] + label::before {
+  content: "＞";
+  color: white;
+  padding: 0 5px;
+  font-size: 10px;
+  vertical-align: middle;
+  display: inline-block;
+}
+.exp-workspace input[type=checkbox]:checked + label::before {
+  -webkit-transform: rotate(90deg);
+  -moz-transform: rotate(90deg);
+  -o-transform: rotate(90deg);
+  -ms-transform: rotate(90deg);
+  transform: rotate(90deg);
+}
+.exp-workspace input {
+  display: none;
+}
+.exp-workspace .exp-workspace-second {
+  display: none;
+}
+.exp-workspace input[type=checkbox]:checked ~ .exp-workspace-second {
+  padding: 0px 30px;
+  height: auto;
+  display: block;
+}
+.exp-workspace .exp-workspace-second .exp-workspace-file {
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+}
+.exp-workspace .exp-workspace-second .exp-workspace-file:hover {
+  background-color: rgb(58, 95, 95);
+}
+.exp-workspace .exp-workspace-second .exp-workspace-file::before {
+  content: "●";
+  color: white;
+  padding: 0 5px;
+  font-size: 10px;
+  vertical-align: middle;
+  display: inline-block;
+}
+
 
 /* ツール */
 .tools-menu {
+  padding: 3px;
   display: flex;
   flex-direction: column;
 }
 .tools-menu2 {
   display: flex;
   flex-direction: row;
+}
+.tools-menu2 div {
+  cursor: pointer;
 }
 .tools-menu2 label {
   color: white;
@@ -108,16 +182,18 @@ p, img, ul, ol {
   width: 34px;
   padding: 2px 2px;
 }
+.dfg-icon:hover {
+  background-color: rgb(58, 95, 95);
+}
 .dfg-icon2 {
   width: 34px;
-  background-color: #498A78;
+  background-color: rgb(58, 95, 95);
   border: 2px solid black;
 }
 .tools-title {
   width: 100%;
+  height: auto;
   background-color: #3A5B52;
-}
-.tools-title p {
   padding: 5px;
   font-size: 12px;
   color: white;
@@ -125,6 +201,7 @@ p, img, ul, ol {
 
 /* ナビゲーター */
 .breadcrumb {
+  padding: 0;
   list-style: none;
   overflow: hidden;
 }
@@ -148,6 +225,44 @@ p, img, ul, ol {
   font-size: 14px;
 }
 .hls-nav2 {
-  color: #FF69B4;
+  color: #FF5370;
   font-size: 14px;
+  font-weight: bold;
+}
+
+/* コードミラー*/
+.react-codemirror2 {
+  min-height: 100%;
+  height: 100%;
+}
+.CodeMirror {
+  min-height: 100%;
+  height: 100%;
+  font-size: 18px;
+}
+
+/* スクロールバー */
+#ec::-webkit-scrollbar {     
+  background-color: #2F4F4F;
+  width: 12px;
+}
+::-webkit-scrollbar {     
+  background-color: #263238;
+  width: 12px;
+}
+::-webkit-scrollbar:horizontal {
+  height: 12px;
+}
+::-webkit-scrollbar-piece {
+  background-color: #263238;
+}
+::-webkit-scrollbar-piece:start {
+  background-color: #263238;
+}
+::-webkit-scrollbar-thumb {
+  background:  rgba(88, 88, 88, 0.25);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-corner {
+  background-color: #263238;
 }

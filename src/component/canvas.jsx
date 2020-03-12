@@ -1,4 +1,7 @@
 import React, {Component, createContext} from 'react'
+import os from 'os'
+
+let connectTime
 
 export default class Canvas extends Component {
   constructor (props) {
@@ -7,7 +10,7 @@ export default class Canvas extends Component {
     this.animationIds = null
     this.state = {
       mouseover: false, isDragging: false,
-      ratioId: 4, ratio: [0.4, 0.5, 0.64, 0.82, 1, 1.2, 1.5, 1.8, 2.2, 2.6, 3.2], before_ratio: 1,
+      ratioId: 4, ratio: [0.4, 0.5, 0.64, 0.82, 1, 1.2, 1.5, 1.8, 2.2, 2.6, 3.2],
       mouse_x: 0, mouse_y: 0, origin_x: 0, origin_y: 0,
       selectNode: [], selectEdge: false, selectEdgeStore: [],
       width: this.props.width, height: this.props.width
@@ -16,6 +19,13 @@ export default class Canvas extends Component {
   componentDidMount () {
     if (!this.canvas) return
     this.initCanvas()
+    var titleBarHeight;
+    if (os.platform() === "darwin") {
+      titleBarHeight = 22
+    } else {
+      titleBarHeight = 30
+    }
+    this.setState({titleBarHeight})
   }
   componentWillUnmount () {
     cancelAnimationFrame(this.animationIds)
@@ -55,6 +65,15 @@ export default class Canvas extends Component {
         targetALUNode = useALU[i].node
         break
       }
+    }
+
+    console.log(connectTime)
+    if (this.state.selectNode[1] != -1) {
+      if (connectTime < 10) {
+        connectTime = connectTime + 1
+      }
+    } else {
+      connectTime = 0
     }
 
     if (this.props.id > 0) {
@@ -170,39 +189,55 @@ export default class Canvas extends Component {
         for (var i in nodeType) {
           switch (nodeType[i]) {
             case 'A':
-              if (targetALUNode.indexOf(Number(i)) === -1) {
-                drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
-              } else {
+              if (targetALUNode.indexOf(Number(i)) > -1) {
                 drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1, this.props.id)
+              } else if (this.state.selectNode[0] == i && this.props.dfgMode === 9) {
+                drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id, this.state.selectNode[1])
+              } else {
+                drawAdd(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
               }
               break
             case 'S':
-              if (targetALUNode.indexOf(Number(i)) === -1) {
-                drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
-              } else {
+              if (targetALUNode.indexOf(Number(i)) > -1) {
                 drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1, this.props.id)
+              } else if (this.state.selectNode[0] == i && this.props.dfgMode === 9) {
+                drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id, this.state.selectNode[1])
+              } else {
+                drawSub(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
               }
               break
             case 'M':
-              if (targetALUNode.indexOf(Number(i)) === -1) {
-                drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
-              } else {
+              if (targetALUNode.indexOf(Number(i)) > -1) {
                 drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1, this.props.id)
+              } else if (this.state.selectNode[0] == i && this.props.dfgMode === 9) {
+                drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id, this.state.selectNode[1])
+              } else {
+                drawMulti(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
               }
               break
             case 'D':
-              if (targetALUNode.indexOf(Number(i)) === -1) {
-                drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
-              } else {
+              if (targetALUNode.indexOf(Number(i)) > -1) {
                 drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 1, this.props.id)
+              } else if (this.state.selectNode[0] == i && this.props.dfgMode === 9) {
+                drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id, this.state.selectNode[1])
+              } else {
+                drawDiv(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, 0, this.props.id)
               }
               break
             case 'I':
-              drawIn(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+              if (this.state.selectNode[0] == i && this.props.dfgMode === 9) {
+                drawIn(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, this.props.id, this.state.selectNode[1])
+              } else {
+                drawIn(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+              } 
               break
             case 'O':
             case 'R':
-              drawOut(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+              if (this.state.selectNode[0] == i && this.props.dfgMode === 9) {
+                drawOut(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio, this.props.id, this.state.selectNode[1])
+              } else {
+                drawOut(ctx, (nodeX[i] - this.state.origin_x) * ratio, (nodeY[i] - this.state.origin_y) * ratio, ratio)
+              }
               break
           }
         }
@@ -235,7 +270,7 @@ export default class Canvas extends Component {
               break;
           }
         }
-        function drawAdd(ctx, x, y, ratio, i, id) {
+        function drawAdd(ctx, x, y, ratio, i, id, j) {
           //下部接続線
           ctx.strokeStyle = "rgb(20, 20, 20)"
           ctx.lineWidth = "2px"
@@ -246,9 +281,15 @@ export default class Canvas extends Component {
           ctx.stroke()
           ctx.fillStyle = "rgb(200 ,100 ,40)"
           ctx.beginPath()
-          ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-          ctx.fill()
-          ctx.stroke()
+          if (j == 0) {
+            ctx.arc(x, y + (35 * ratio), (5 + (4 * connectTime / 10)) * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          } else {
+            ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          }
           //上部接続線
           ctx.fillStyle = "rgb(40, 100, 200)"
           ctx.beginPath()
@@ -262,13 +303,25 @@ export default class Canvas extends Component {
           ctx.closePath()
           ctx.stroke()
           ctx.beginPath()
-          ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-          ctx.fill()
-          ctx.stroke()
+          if (j == 2) {
+            ctx.arc(x + (20 * ratio), y - (35 * ratio), (5 + (4 * connectTime / 10)) * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          } else {
+            ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          }
           ctx.beginPath()
-          ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-          ctx.fill()
-          ctx.stroke()
+          if (j == 1) {
+            ctx.arc(x - (20 * ratio), y - (35 * ratio), (5 + (4 * connectTime / 10)) * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          } else {
+            ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          }
           //中央
           if (i === 1 && id == 3) {
             ctx.fillStyle = "rgb(220, 20, 20)"
@@ -285,7 +338,7 @@ export default class Canvas extends Component {
           ctx.textBaseline = "middle"
           ctx.fillText("＋", x, y)
         }
-        function drawSub(ctx, x, y, ratio, i, id) {
+        function drawSub(ctx, x, y, ratio, i, id, j) {
           //下部接続線
           ctx.strokeStyle = "rgb(20, 20, 20)"
           ctx.lineWidth = "2px"
@@ -296,9 +349,15 @@ export default class Canvas extends Component {
           ctx.stroke()
           ctx.fillStyle = "rgb(200 ,100 ,40)"
           ctx.beginPath()
-          ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-          ctx.fill()
-          ctx.stroke()
+          if (j == 0) {
+            ctx.arc(x, y + (35 * ratio), (5 + (4 * connectTime / 10)) * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          } else {
+            ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          }
           //上部接続線
           ctx.fillStyle = "rgb(40, 100, 200)"
           ctx.beginPath()
@@ -312,13 +371,25 @@ export default class Canvas extends Component {
           ctx.closePath()
           ctx.stroke()
           ctx.beginPath()
-          ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-          ctx.fill()
-          ctx.stroke()
+          if (j == 2) {
+            ctx.arc(x + (20 * ratio), y - (35 * ratio), (5 + (4 * connectTime / 10)) * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          } else {
+            ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          }
           ctx.beginPath()
-          ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-          ctx.fill()
-          ctx.stroke()
+          if (j == 1) {
+            ctx.arc(x - (20 * ratio), y - (35 * ratio), (5 + (4 * connectTime / 10)) * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          } else {
+            ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          }
           //中央
           if (i === 1 && id == 3) {
             ctx.fillStyle = "rgb(220, 20, 20)"
@@ -335,7 +406,7 @@ export default class Canvas extends Component {
           ctx.textBaseline = "middle"
           ctx.fillText("ー", x, y)
         }
-        function drawMulti(ctx, x, y, ratio, i, id) {
+        function drawMulti(ctx, x, y, ratio, i, id, j) {
           //下部接続線
           ctx.strokeStyle = "rgb(20, 20, 20)"
           ctx.lineWidth = "2px"
@@ -346,9 +417,15 @@ export default class Canvas extends Component {
           ctx.stroke()
           ctx.fillStyle = "rgb(200, 100, 40)"
           ctx.beginPath()
-          ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-          ctx.fill()
-          ctx.stroke()
+          if (j == 0) {
+            ctx.arc(x, y + (35 * ratio), (5 + (4 * connectTime / 10)) * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          } else {
+            ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          }
           //上部接続線
           ctx.fillStyle = "rgb(40, 100, 200)"
           ctx.beginPath()
@@ -362,13 +439,25 @@ export default class Canvas extends Component {
           ctx.closePath()
           ctx.stroke()
           ctx.beginPath()
-          ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-          ctx.fill()
-          ctx.stroke()
+          if (j == 2) {
+            ctx.arc(x + (20 * ratio), y - (35 * ratio), (5 + (4 * connectTime / 10)) * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          } else {
+            ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          }
           ctx.beginPath()
-          ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-          ctx.fill()
-          ctx.stroke()
+          if (j == 1) {
+            ctx.arc(x - (20 * ratio), y - (35 * ratio), (5 + (4 * connectTime / 10)) * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          } else {
+            ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          }
           //中央
           if (i === 1 && id == 3) {
             ctx.fillStyle = "rgb(220, 20, 20)"
@@ -385,7 +474,7 @@ export default class Canvas extends Component {
           ctx.textBaseline = "middle"
           ctx.fillText("×", x, y)
         }
-        function drawDiv(ctx, x, y, ratio, i, id) {
+        function drawDiv(ctx, x, y, ratio, i, id, j) {
           //下部接続線
           ctx.strokeStyle = "rgb(20, 20, 20)"
           ctx.lineWidth = "2px"
@@ -396,9 +485,15 @@ export default class Canvas extends Component {
           ctx.stroke()
           ctx.fillStyle = "rgb(200, 100, 40)"
           ctx.beginPath()
-          ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-          ctx.fill()
-          ctx.stroke()
+          if (j == 0) {
+            ctx.arc(x, y + (35 * ratio), (5 + (4 * connectTime / 10)) * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          } else {
+            ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          }
           //上部接続線
           ctx.fillStyle = "rgb(40, 100, 200)"
           ctx.beginPath()
@@ -412,13 +507,25 @@ export default class Canvas extends Component {
           ctx.closePath()
           ctx.stroke()
           ctx.beginPath()
-          ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-          ctx.fill()
-          ctx.stroke()
+          if (j == 2) {
+            ctx.arc(x + (20 * ratio), y - (35 * ratio), (5 + (4 * connectTime / 10)) * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          } else {
+            ctx.arc(x + (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          }
           ctx.beginPath()
-          ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-          ctx.fill()
-          ctx.stroke()
+          if (j == 1) {
+            ctx.arc(x - (20 * ratio), y - (35 * ratio), (5 + (4 * connectTime / 10)) * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          } else {
+            ctx.arc(x - (20 * ratio), y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          }
           //中央
           if (i === 1 && id == 3) {
             ctx.fillStyle = "rgb(220, 20, 20)"
@@ -435,7 +542,7 @@ export default class Canvas extends Component {
           ctx.textBaseline = "middle"
           ctx.fillText("÷", x, y)
         }
-        function drawIn (ctx, x, y, ratio) {
+        function drawIn (ctx, x, y, ratio, id, j) {
           //下部接続線
           ctx.strokeStyle = "rgb(20, 20, 20)"
           ctx.lineWidth = "2px"
@@ -446,9 +553,15 @@ export default class Canvas extends Component {
           ctx.stroke()
           ctx.fillStyle = "rgb(200, 100, 40)"
           ctx.beginPath()
-          ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-          ctx.fill()
-          ctx.stroke()
+          if (j == 0) {
+            ctx.arc(x, y + (35 * ratio), (5 + (4 * connectTime / 10)) * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          } else {
+            ctx.arc(x, y + (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          }
           //中央
           ctx.fillStyle = "rgb(40, 100, 200)"
           ctx.beginPath()
@@ -456,7 +569,7 @@ export default class Canvas extends Component {
           ctx.fill()
           ctx.stroke()
         }
-        function drawOut (ctx, x, y, ratio) {
+        function drawOut (ctx, x, y, ratio, id, j) {
           //上部接続線
           ctx.strokeStyle = "rgb(20, 20, 20)"
           ctx.lineWidth = "2px"
@@ -467,9 +580,15 @@ export default class Canvas extends Component {
           ctx.stroke()
           ctx.fillStyle = "rgb(40, 100, 200)"
           ctx.beginPath()
-          ctx.arc(x, y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
-          ctx.fill()
-          ctx.stroke()
+          if (j == 3) {
+            ctx.arc(x, y - (35 * ratio), (5 + (4 * connectTime / 10)) * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          } else {
+            ctx.arc(x, y - (35 * ratio), 5 * ratio, 0, Math.PI * 2, false)
+            ctx.fill()
+            ctx.stroke()
+          }
           //中央
           ctx.fillStyle = "rgb(200, 100, 40)"
           ctx.beginPath()
@@ -708,8 +827,8 @@ export default class Canvas extends Component {
                             ctx.moveTo((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
                             ctx.lineTo((muxX[k] - 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
                             ctx.lineTo((muxX[k] - 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
-                            ctx.lineTo((muxX[k] + 10 - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
-                            ctx.lineTo((muxX[k] + 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
                             ctx.stroke()
                             break
                           } else {
@@ -719,7 +838,7 @@ export default class Canvas extends Component {
                               ctx.fill()
                               ctx.beginPath()
                               ctx.arc((muxX[k] + 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
-                              ctx.stroke()
+                              ctx.fill()
                             }
                             ctx.beginPath()
                             ctx.moveTo((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
@@ -754,8 +873,9 @@ export default class Canvas extends Component {
                               ctx.beginPath()
                               ctx.arc((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
                               ctx.fill()
-                              ctx.beginPath((muxX[k] - 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
-                              ctx.moveTo()
+                              ctx.beginPath()
+                              ctx.arc((muxX[k] - 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                              ctx.fill()
                             }
                             ctx.beginPath()
                             ctx.moveTo((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
@@ -770,15 +890,16 @@ export default class Canvas extends Component {
                               ctx.beginPath()
                               ctx.arc((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
                               ctx.fill()
-                              ctx.beginPath((muxX[k] + 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
-                              ctx.moveTo()
+                              ctx.beginPath()
+                              ctx.arc((muxX[k] + 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio, 2.5 * ratio, 0, Math.PI * 2, false)
+                              ctx.fill()
                             }
                             ctx.beginPath()
                             ctx.moveTo((regX[j] - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
                             ctx.lineTo((muxX[k] + 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, ((Number(j) + 1) * 10 - this.state.origin_y) * ratio)
                             ctx.lineTo((muxX[k] + 30 - ((muxNode[k][5] - 1) * 5) - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
-                            ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
-                            ctx.lineTo((muxX[k] - 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] + 10 - this.state.origin_x) * ratio, (muxY[k] - 37 - this.state.origin_y) * ratio)
+                            ctx.lineTo((muxX[k] + 10 - this.state.origin_x) * ratio, (muxY[k] - 30 - this.state.origin_y) * ratio)
                             ctx.stroke()
                             break
                           }
@@ -950,7 +1071,7 @@ export default class Canvas extends Component {
   }
   doMouseMove (e) {
     var x = e.clientX - this.canvas.offsetLeft
-    var y = e.clientY - this.canvas.offsetTop
+    var y = e.clientY - this.canvas.offsetTop - this.state.titleBarHeight
     var ratio = this.state.ratio[this.state.ratioId]
     if (this.state.isDragging) {
       switch (this.props.dfgMode) {
@@ -997,27 +1118,27 @@ export default class Canvas extends Component {
           case 'S':
           case 'M':
           case 'D':
-            if (Math.pow(nodeX[i] - x, 2) + Math.pow(nodeY[i] - y + 35, 2) <= Math.pow(8, 2)) {
+            if (Math.pow(nodeX[i] - x, 2) + Math.pow(nodeY[i] - y + 35, 2) <= Math.pow(9, 2)) {
               selectnode.splice(0,2,i,0)
               return selectnode
             }
-            if (Math.pow(nodeX[i] - x - 20, 2) + Math.pow(nodeY[i] - y - 35, 2) <= Math.pow(8, 2)) {
+            if (Math.pow(nodeX[i] - x - 20, 2) + Math.pow(nodeY[i] - y - 35, 2) <= Math.pow(9, 2)) {
               selectnode.splice(0,2,i,1)
               return selectnode
             }
-            if (Math.pow(nodeX[i] - x + 20, 2) + Math.pow(nodeY[i] - y - 35, 2) <= Math.pow(8, 2)) {
+            if (Math.pow(nodeX[i] - x + 20, 2) + Math.pow(nodeY[i] - y - 35, 2) <= Math.pow(9, 2)) {
               selectnode.splice(0,2,i,2)
               return selectnode
             }
             break
           case 'I':
-            if (Math.pow(nodeX[i] - x, 2) + Math.pow(nodeY[i] - y + 35, 2) <= Math.pow(8, 2)) {
+            if (Math.pow(nodeX[i] - x, 2) + Math.pow(nodeY[i] - y + 35, 2) <= Math.pow(9, 2)) {
               selectnode.splice(0,2,i,0)
               return selectnode
             }
             break
           case 'O':
-            if (Math.pow(nodeX[i] - x, 2) + Math.pow(nodeY[i] - y - 35, 2) <= Math.pow(8, 2)) {
+            if (Math.pow(nodeX[i] - x, 2) + Math.pow(nodeY[i] - y - 35, 2) <= Math.pow(9, 2)) {
               selectnode.splice(0,2,i,3)
               return selectnode
             }
@@ -1039,8 +1160,8 @@ export default class Canvas extends Component {
   }
   doWheel (e) {
     var ratioId = this.state.ratioId
-    this.setState({before_ratio: this.state.ratio[ratioId]})
-    if (e.deltaY > 0) {
+    var before_ratio = this.state.ratio[ratioId]
+    if (e.deltaY < 0) {
       ratioId = ratioId + 1
       if (ratioId > 10) {
         ratioId = 10
@@ -1052,92 +1173,97 @@ export default class Canvas extends Component {
       }
     }
     var ratio = this.state.ratio[ratioId]
-    var origin_x = (this.state.mouse_x / this.state.before_ratio) - (this.state.mouse_x / ratio) + this.state.origin_x
-    var origin_y = (this.state.mouse_y / this.state.before_ratio) - (this.state.mouse_y / ratio) + this.state.origin_y
+    var origin_x = (this.state.mouse_x / before_ratio) - (this.state.mouse_x / ratio) + this.state.origin_x
+    var origin_y = (this.state.mouse_y / before_ratio) - (this.state.mouse_y / ratio) + this.state.origin_y
     this.setState({ratioId: ratioId, origin_x: origin_x, origin_y: origin_y})
   }
-  doMouseDown () {
-    this.setState({isDragging: true})
+  doMouseDown (e) {
+    if (e.button === 0) {
+      this.setState({isDragging: true})
+    }
   }
-  doMouseUp () {
-    this.setState({isDragging: false})
-    var ratio = this.state.ratio[this.state.ratioId]
-    var nodeX = this.state.mouse_x / ratio + this.state.origin_x
-    var nodeY = this.state.mouse_y / ratio + this.state.origin_y
-    var nodeType
-    switch (this.props.dfgMode) {
-      case 1:
-        if (this.state.selectNode[0] !== -1 && this.state.selectNode[1] === -1) {
-          this.props.removeNodeHandler(this.state.selectNode)
-        }
-        break
-      case 3:
-        nodeType = 'A'
-        break
-      case 4:
-        nodeType = 'S'
-        break
-      case 5:
-        nodeType = 'M'
-        break
-      case 6:
-        nodeType = 'D'
-        break
-      case 7:
-        nodeType = 'I'
-        break
-      case 8:
-        nodeType = 'O'
-        break
-      case 9:
-        if (this.state.selectNode[0] !== -1 && this.state.selectNode[1] !== -1) {
-          if (!this.state.selectEdge) {
-            this.setState({selectEdge: true, selectEdgeStore: this.state.selectNode})
-          } else {
-            if (this.state.selectEdgeStore[1] === 0 && this.state.selectNode[1] > 0 && !(this.state.selectEdgeStore[0] === this.state.selectNode[0])) {
-              var edgeType
-              switch (this.state.selectNode[1]) {
-                case 1:
-                  edgeType = 'l'
-                  break
-                case 2:
-                  edgeType = 'r'
-                  break
-                case 3:
-                  edgeType = 'c'
-                  break
-              }
-              this.props.drawEdgeHandler(this.state.selectEdgeStore[0], this.state.selectNode[0], edgeType)
-            }
-            if (this.state.selectEdgeStore[1] > 0 && this.state.selectNode[1] === 0 && !(this.state.selectEdgeStore[0] === this.state.selectNode[0])) {
-              var edgeType
-              switch (this.state.selectEdgeStore[1]) {
-                case 1:
-                  edgeType = 'l'
-                  break
-                case 2:
-                  edgeType = 'r'
-                  break
-                case 3:
-                  edgeType = 'c'
-                  break
-              }
-              this.props.drawEdgeHandler(this.state.selectNode[0], this.state.selectEdgeStore[0], edgeType)  
-            }
-            
-            this.setState({selectEdge: false})
+  doMouseUp (e) {
+    if (e.button === 0) {
+      this.setState({isDragging: false})
+      var ratio = this.state.ratio[this.state.ratioId]
+      var nodeX = this.state.mouse_x / ratio + this.state.origin_x
+      var nodeY = this.state.mouse_y / ratio + this.state.origin_y
+      var nodeType
+      switch (this.props.dfgMode) {
+        case 1:
+          if (this.state.selectNode[0] !== -1 && this.state.selectNode[1] === -1) {
+            this.props.removeNodeHandler(this.state.selectNode)
           }
-        }
-        break
-      case 11:
-        if (Number(this.state.selectNode[0]) !== -1 && Number(this.state.selectNode[1]) === -1 && Number(this.state.selectNode[2]) === -1) {
-          this.props.paintNodeHandler(this.state.selectNode[0])
-        }
-        break
+          break
+        case 3:
+          nodeType = 'A'
+          break
+        case 4:
+          nodeType = 'S'
+          break
+        case 5:
+          nodeType = 'M'
+          break
+        case 6:
+          nodeType = 'D'
+          break
+        case 7:
+          nodeType = 'I'
+          break
+        case 8:
+          nodeType = 'O'
+          break
+        case 9:
+          if (this.state.selectNode[0] !== -1 && this.state.selectNode[1] !== -1) {
+            if (!this.state.selectEdge) {
+              this.setState({selectEdge: true, selectEdgeStore: this.state.selectNode})
+            } else {
+              if (this.state.selectEdgeStore[1] === 0 && this.state.selectNode[1] > 0 && !(this.state.selectEdgeStore[0] === this.state.selectNode[0])) {
+                var edgeType
+                switch (this.state.selectNode[1]) {
+                  case 1:
+                    edgeType = 'l'
+                    break
+                  case 2:
+                    edgeType = 'r'
+                    break
+                  case 3:
+                    edgeType = 'c'
+                    break
+                }
+                this.props.drawEdgeHandler(this.state.selectEdgeStore[0], this.state.selectNode[0], edgeType)
+              }
+              if (this.state.selectEdgeStore[1] > 0 && this.state.selectNode[1] === 0 && !(this.state.selectEdgeStore[0] === this.state.selectNode[0])) {
+                var edgeType
+                switch (this.state.selectEdgeStore[1]) {
+                  case 1:
+                    edgeType = 'l'
+                    break
+                  case 2:
+                    edgeType = 'r'
+                    break
+                  case 3:
+                    edgeType = 'c'
+                    break
+                }
+                this.props.drawEdgeHandler(this.state.selectNode[0], this.state.selectEdgeStore[0], edgeType)  
+              }
+              
+              this.setState({selectEdge: false})
+            }
+          }
+          break
+        case 11:
+          if (Number(this.state.selectNode[0]) !== -1 && Number(this.state.selectNode[1]) === -1 && Number(this.state.selectNode[2]) === -1) {
+            this.props.paintNodeHandler(this.state.selectNode[0])
+          }
+          break
+      }
+      if (this.props.dfgMode >= 3 && this.props.dfgMode <= 8) {
+        this.props.putNodeHandler(nodeType, nodeX, nodeY)
+      }
     }
-    if (this.props.dfgMode >= 3 && this.props.dfgMode <= 8) {
-      this.props.putNodeHandler(nodeType, nodeX, nodeY)
-    }
+    
   }
   render () {
     const doMouseOver = () => {
@@ -1155,8 +1281,8 @@ export default class Canvas extends Component {
         onMouseMove={e => this.doMouseMove(e)}
         onMouseOver={doMouseOver}
         onMouseOut={doMouseOut}
-        onMouseDown={() => this.doMouseDown()}
-        onMouseUp={() => this.doMouseUp()}
+        onMouseDown={(e) => this.doMouseDown(e)}
+        onMouseUp={(e) => this.doMouseUp(e)}
         onWheel={e => this.doWheel(e)}
         >
       </canvas>
