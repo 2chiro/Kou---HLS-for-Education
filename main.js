@@ -45,7 +45,9 @@ function createWindow () {
     resizable: true,
     useContentSize: true,
     webPreferences: {
-      nodeIntegration: true
+        nodeIntegration: true,
+        contextIsolation: false,
+        enableRemoteModule: true
     }
   })
   mainWindow.setTitle('Kou - High-level Synthesis for Education')
@@ -80,7 +82,9 @@ function createRenameWindow () {
     frame: false,
     useContentSize: true,
     webPreferences: {
-      nodeIntegration: true
+        nodeIntegration: true,
+        contextIsolation: false,
+        enableRemoteModule: true
     }
   })
   renameWindow.setTitle('名前の変更')
