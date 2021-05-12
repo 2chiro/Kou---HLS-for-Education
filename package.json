@@ -14,7 +14,7 @@
   "dependencies": {
     "archiver": "^3.1.1",
     "classnames": "^2.2.6",
-    "codemirror": "^5.52.0",
+    "codemirror": "^5.58.2",
     "custom-electron-titlebar": "^3.2.6",
     "electron-progressbar": "^1.2.0",
     "fs": "0.0.1-security",
