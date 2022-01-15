@@ -15,7 +15,7 @@ let dirPath
 app.commandLine.appendSwitch("js-flags", "--max-old-space-size=4096");
 const exec = require('child_process').execFile
 
-//const { default: installExtension, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = require('electron-devtools-installer')
+const { default: installExtension, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = require('electron-devtools-installer') // デバッグ用ツール
 
 let mainWindow, renameWindow
 
@@ -30,14 +30,15 @@ app.on('activate', function () {
 })
 
 function createWindow () {
-  /*
+
+  // デバッグ用ツール
   installExtension(REDUX_DEVTOOLS)
       .then(name => console.log(name))
       .catch(err => console.log(err))
   installExtension(REACT_DEVELOPER_TOOLS)
       .then(name => console.log(name))
       .catch(err => console.log(err))
-    */
+  
   mainWindow = new BrowserWindow({
     minWidth: 800,
     minHeight: 600,
@@ -96,6 +97,7 @@ function createRenameWindow () {
   }))
 }
 
+// エクスプローラ　編集メニュー画面
 ipcMain.on('show-context-menu', (event, node, index) => {
   var menu = new Menu()
   menu.append(new MenuItem({label: '選択', click: () => event.sender.send('select')}))
@@ -107,6 +109,10 @@ ipcMain.on('show-context-menu', (event, node, index) => {
   if (node.length > 1) {
     menu.append(new MenuItem({label: '削除', click: () => event.sender.send('delete')}))
   }
+  //編集メニューを閉じたとき
+  menu.on('menu-will-close', () => {
+    event.sender.send('menu-close')
+  })
   menu.popup()
 })
 

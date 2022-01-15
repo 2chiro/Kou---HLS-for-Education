@@ -83,6 +83,13 @@ const Actions = {
             nodeEdgeType: edgeType
         }
     },
+    changeProcessTime: (v, i) => {
+        return {
+            type: 'CHANGE_PROCESSTIME',
+            pt: v,
+            ptType: i
+        }
+    },
     changeCycle: (v) => {
         return {
             type: 'CHANGE_CYCLE',

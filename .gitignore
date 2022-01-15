@@ -7,4 +7,5 @@ tmp/
 kou.asar
 kou-darwin-x64
 kou-win32-x64
+package-lock.json
 .vs

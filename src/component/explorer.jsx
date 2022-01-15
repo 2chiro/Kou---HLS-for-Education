@@ -47,11 +47,17 @@ export default class Explorer extends Component {
       ipcRenderer.removeAllListeners('delete')
       const node = this.props.nodeInfo
       ipcRenderer.send('show-context-menu', node, parseInt(index))
+      //メニューを閉じたとき
+      ipcRenderer.on('menu-close', (event) => {
+        this.props.changePointHandler(null)
+      })
+      // 選択
       ipcRenderer.on('select', (event) => {
         this.props.changeSelectHandler(parseInt(index))
         console.log('SELECT')
         this.props.changePointHandler(null)
       })
+      // 複製
       ipcRenderer.on('copy', (event) => {
         const __dirname = path.resolve()
         var tidPath1 = path.join(__dirname, 'tmp', '' + index)
@@ -60,10 +66,53 @@ export default class Explorer extends Component {
 
         var node = Object.assign({}, this.props.nodeInfo[index])
 
-        var c1 = path.join(__dirname, 'tmp', '' + this.props.nodeInfo.length, node.nodeName + ".c")
-        var c2 = path.join(__dirname, 'tmp', '' + this.props.nodeInfo.length, node.nodeName + "_copy.c")
-        var vhdl1 = path.join(__dirname, 'tmp', '' + this.props.nodeInfo.length, node.nodeName + ".vhdl")
-        var vhdl2 = path.join(__dirname, 'tmp', '' + this.props.nodeInfo.length, node.nodeName + "_copy.vhdl")
+        // 2021.09.18 追加 複製時名称の仕様変更 Nishimoto
+        var nodeName = node.nodeName
+        var leftParenthesis = nodeName.lastIndexOf('(')
+        var rightParenthesis = nodeName.lastIndexOf(')')
+        if (!(leftParenthesis == -1 || rightParenthesis == -1)) {
+          // 名前の後ろに番号付き丸括弧がある場合
+          if (leftParenthesis < rightParenthesis) {
+            var nameSuffix = nodeName.substr(leftParenthesis, rightParenthesis)
+            var regex1 = new RegExp('^\\(\\d{1,}\\)$') // 正規表現 括弧の中に数値がある場合
+            if (regex1.exec(nameSuffix) !== null) {
+              var nodeBranchNumber = Number(nodeName.substr(leftParenthesis + 1, rightParenthesis - leftParenthesis - 1)) + 1 // カウントアップ
+              var tmpNodeName = nodeName.substr(0, leftParenthesis) + '(' + nodeBranchNumber + ')'
+              nodeName = nameDoubleCheck(tmpNodeName, this.props.nodeInfo)
+            } else {
+              var tmpNodeName = nodeName + '(1)'
+              nodeName = nameDoubleCheck(tmpNodeName, this.props.nodeInfo)
+            }
+          } else {
+            var tmpNodeName = nodeName + '(1)'
+            nodeName = nameDoubleCheck(tmpNodeName, this.props.nodeInfo)
+          }
+        } else {
+          var tmpNodeName = nodeName + '(1)'
+          nodeName = nameDoubleCheck(tmpNodeName, this.props.nodeInfo)
+        }
+
+        // ノード情報にカウントアップ後と同じ名前がある場合
+        function nameDoubleCheck(tmpNodeName, nodeInfo) {
+          var nodeName
+          for (var i = 0; i < nodeInfo.length; i++) {
+            if (index != i && tmpNodeName == nodeInfo[i].nodeName) {
+              var nodeName2 = nodeInfo[i].nodeName
+              var leftParenthesis2 = nodeName2.lastIndexOf('(')
+              var rightParenthesis2 = nodeName2.lastIndexOf(')')
+              var nodeBranchNumber2 = Number(nodeName2.substr(leftParenthesis2 + 1, rightParenthesis2 - leftParenthesis2 - 1)) + 1
+              var tmpNodeName2 = nodeName2.substr(0, leftParenthesis2) + '(' + nodeBranchNumber2 + ')'
+              tmpNodeName = tmpNodeName2
+            }
+          }
+          nodeName = tmpNodeName
+          return nodeName
+        }
+
+        var c1 = path.join(__dirname, 'tmp', '' + this.props.nodeInfo.length, node.nodeName + '.c')
+        var c2 = path.join(__dirname, 'tmp', '' + this.props.nodeInfo.length, nodeName + '.c')
+        var vhdl1 = path.join(__dirname, 'tmp', '' + this.props.nodeInfo.length, node.nodeName + '.vhdl')
+        var vhdl2 = path.join(__dirname, 'tmp', '' + this.props.nodeInfo.length, nodeName + '.vhdl')
         if (isExistFile(c1)) {
           fs.renameSync(c1, c2)
         }
@@ -71,9 +120,9 @@ export default class Explorer extends Component {
           fs.renameSync(vhdl1, vhdl2)
         }
 
-        
-        node.nodeName += '_copy'
-        console.log(node)
+        node.nodeName = nodeName
+        // node.nodeName += '_copy'
+        // console.log(node)
 
         this.props.copyNodeHandler(node)
         console.log('COPY')
@@ -90,6 +139,7 @@ export default class Explorer extends Component {
           }
         }
       })
+      // 名前変更
       ipcRenderer.on('s_rename', (event, name) => {
         const __dirname = path.resolve()
         var node = Object.assign({}, this.props.nodeInfo[index])
@@ -120,6 +170,7 @@ export default class Explorer extends Component {
           }
         }
       })
+      // 削除
       ipcRenderer.on('delete', (event) => {
         const __dirname = path.resolve()
         var tidPath = path.join(__dirname, 'tmp', '' + index)
@@ -141,9 +192,9 @@ export default class Explorer extends Component {
         const cpath = path.join(__dirname, 'tmp', "" + index)
         var nameStyle
         if (this.props.pointTabId == index) {
-          nameStyle = {color: '#53FF70'}
+          nameStyle = { color: '#FF5370' }
         } else if (this.props.selectTabId == index) {
-          nameStyle = {color: '#FF5370'}
+          nameStyle = { color: '#53FF70' }
         } else {
           nameStyle = {color: 'white'}
         }

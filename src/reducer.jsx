@@ -1,31 +1,33 @@
 import { start } from "repl"
 
 const initialState = {
-    id: 0,
-    dfgMode: 0,
-    selectTabId: 0,
-    pointTabId: null,
-    nodeInfo: [
+    id: 0,                // 高位合成プロセスのID 0:動作記述 1: DFG生成　2: スケジューリング　3: バインディング　4: RTL回路生成
+    dfgMode: 0,           // DFG用ツールのモード
+    selectTabId: 0,       // 選択中のプロジェクトID
+    pointTabId: null,     // エクスプローラメニューを開いているプロジェクトID
+    nodeInfo: [           // ノード情報（高位合成の全情報）
         {
-            nodeName: 'noname',
+            nodeName: 'noname',  // プロジェクトの名前
             // --- Cエディタ用 --- 
             //code: '#include <stdio.h>\nvoid noname(int a, int b, int c, int d, int *out1, int *out2)\n{\nint add1 = a + b;\nint add2 = c * d;\nint add3 = add1 + add2;\nint multi1 = add1*add2;\n*out1 = add3;\n*out2 = multi1;\n}',
-            code: '#include <stdio.h>\nvoid noname()\n{\n\n}',
+            code: '#include <stdio.h>\nvoid noname()\n{\n\n}',  // 動作記述
             // --- DFG用 ---
-            nodeType: [], nodeX: [], nodeY: [], nodeTime: [],
-            cycle: 0, nodeMinY: 0, nodeMaxX: 0, nodeMinX: 0,
-            add: 1, sub: 1, mult: 1, div: 1, reg: 0,
-            nodeEdge1: [], nodeEdge2: [], nodeEdgeType: [],
-            startEdge: [], endEdge: [], doubleEdge: [],
-            useRegister: [], registerX: [], registerY: [],
-            useALU: [], ALUValue: '',
+            nodeType: [], nodeX: [], nodeY: [], nodeTime: [],   // nodeType: 演算・入出力の種類　nodeX: ノードのX座標　nodeY: ノードのY座標　nodeTime: ノードの実行時間
+            cycle: 0, nodeMinY: 0, nodeMaxX: 0, nodeMinX: 0,    // cycle: 総サイクル数　nodeMinY: 最小Y座標　nodeMaxX: 最大X座標　nodeMinX: 最小X座標
+            add: 1, sub: 1, mult: 1, div: 1, reg: 0,            // add: 加算器数　sub: 減算器数　mult: 乗算器数　div: 除算器数　reg: レジスタ総数
+            ptAdd : 1, ptSub: 1, ptMult: 2, ptDiv: 2,           // ptAdd: 加算器処理時間　ptSub: 減算器処理時間　ptMult: 乗算器処理時間　ptDiv: 除算器処理時間
+            nodeEdge1: [], nodeEdge2: [], nodeEdgeType: [],     // nodeEdge1: ノード接続線の始点　nodeEdge2: ノード接続線の終点　nodeEdgeType: ノード接続線の種類
+            startEdge: [], endEdge: [], doubleEdge: [],         // startEdge: 始点の実行時間　endEdge: 終点の実行時間　doubleEdge: 接続重複
+            useRegister: [], registerX: [], registerY: [],      // useRegister: レジスタ割当情報　registerX: レジスタのX座標　registerY: レジスタのY座標
+            useALU: [], ALUValue: '',                           // useALU: 演算器の割当情報　ALUValue: 演算器割当対象
             // --- RTL用 ---
-            inputNode: [], inputX:[], inputY: 0,
-            outputNode: [], outputX: [], outputY: 0,
-            aluNode: [], aluX: [], aluY: 0,
-            regNode: [], regX: [], muxNode: [], muxX: [], muxY: 0,
-            rtlNode: [], rtlLine1: [], rtlLine2: [], rtlLine3: [],
-            tmux: 0
+            inputNode: [], inputX:[], inputY: 0,　　　　　　　　// inputNode 入力線　inputX: 入力線のX座標　inputY: 0 入力線のY座標
+            outputNode: [], outputX: [], outputY: 0,　　　　　　// outputNode: 出力線　outputX: 出力線のX座標　outputY: 出力線のY座標
+            aluNode: [], aluX: [], aluY: 0,                     // aluNode: 演算器　aluX: 演算器のX座標　aluY: 演算器のY座標
+            regNode: [], regX: [],                              // regNode: レジスタ　regX: レジスタのX座標
+            muxNode: [], muxX: [], muxY: 0,  　                 // muxNode: マルチプレクサ muxX: マルチプレクサのX座標　muxY: マルチプレクサのY座標
+            rtlNode: [], rtlLine1: [], rtlLine2: [],            // rtlNode: RTL用ノードの種類　rtlLine1: 接続線の始点　rtlLine2: 接続線の終点
+            rtlLine3: [], tmux: 0                               // rtlLine3: 終点の位置　tmux: 上部（入力・演算器-レジスタ間）のマルチプレクサ数
             // -------------
         }
     ]
@@ -33,6 +35,7 @@ const initialState = {
 
 export default function reducer (state = initialState, action) {
     switch (action.type) {
+        // プロジェクト新規 - 初期化
         case 'NEW':
             var nodeInfo = state.nodeInfo
             var node = {
@@ -57,16 +60,33 @@ export default function reducer (state = initialState, action) {
                 ...state, id: 0, dfgMode: 0, selectTabId: parseInt(nodeInfo.length)-1,
                 nodeInfo: nodeInfo
             }
+
+        // プロジェクトを開く - DFG-RTLファイルより情報表示
         case 'OPEN':
-            return {...state, nodeInfo: action.node}
+            return { ...state, nodeInfo: action.node }
+
+        // 高位合成のプロセス選択
+        // 0: 動作記述　1: DFG生成　2: スケジューリング　3: バインディング　4: RTL生成
         case 'CHANGE_ID':
-            return {...state, id: action.value, dfgMode: 0,}
+            return { ...state, id: action.value, dfgMode: 0 }
+
+        // DFGのツール選択
+        // 0: 選択　1: 消去　2: 移動　3: 加算　4: 減算　5: 乗算　6: 除算　7: 入力　8: 出力　9: ノード接続
+        // 11: 演算割当
         case 'CHANGE_DFGMODE':
-            return {...state, dfgMode: action.value}
+            return { ...state, dfgMode: action.value }
+
+        // プロジェクト - 選択
+        // エクスプローラで赤字表示
         case 'CHANGE_SELECT_TAB_ID':
-            return {...state, selectTabId: action.value}
+            return { ...state, selectTabId: action.value }
+
+        // プロジェクト - メニュー
+        // エクスプローラで緑字表示
         case 'CHANGE_POINT_TAB_ID':
-            return {...state, pointTabId: action.value}
+            return { ...state, pointTabId: action.value }
+
+        // プロジェクトのコピー
         case 'COPY_NODE':
             var nodeInfo = state.nodeInfo
             nodeInfo.push(action.node)
@@ -74,13 +94,17 @@ export default function reducer (state = initialState, action) {
                 ...state, id: 0, dfgMode: 0, selectTabId: parseInt(nodeInfo.length)-1,
                 nodeInfo: nodeInfo
             }
+
+        // 名前変更
         case 'RENAME_NODE':
             var node = state.nodeInfo[action.value]
             node.nodeName = action.name
             return {
                 ...state,
-                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[action.value] ? node : el)
             }
+
+        // 削除
         case 'DELETE_NODE': {
             var nodeInfo = state.nodeInfo
             nodeInfo.splice(action.value, 1)
@@ -89,6 +113,8 @@ export default function reducer (state = initialState, action) {
                 nodeInfo: nodeInfo
             }
         }
+
+        // DFGノードの配置
         case 'PUT_NODE': 
             var node = state.nodeInfo[state.selectTabId]
             var nodeType = node.nodeType
@@ -114,6 +140,8 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // DFGノードの移動
         case 'MOVE_NODE':
             var node = state.nodeInfo[state.selectTabId]
             var nodeX = node.nodeX
@@ -142,6 +170,8 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // DFGノードの削除
         case 'REMOVE_NODE':
             var node = state.nodeInfo[state.selectTabId]
             var nodeType = node.nodeType
@@ -179,6 +209,8 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // DFGノード間の接続
         case 'DRAW_EDGE':
             var node = state.nodeInfo[state.selectTabId]
             var nodeEdge1 = node.nodeEdge1
@@ -194,6 +226,30 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // 実行時間の変更
+        case 'CHANGE_PROCESSTIME':
+            var node = state.nodeInfo[state.selectTabId]
+            switch (action.ptType) {
+                case 1:
+                    node.ptAdd = action.pt
+                    break
+                case 2:
+                    node.ptSub = action.pt
+                    break
+                case 3:
+                    node.ptMult = action.pt
+                    break
+                case 4:
+                    node.ptDiv = action.pt
+                    break
+            }
+            return {
+                ...state,
+                nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
+            }
+
+        // サイクル数の変更
         case 'CHANGE_CYCLE':
             var node = state.nodeInfo[state.selectTabId]
             node.cycle = action.cycle
@@ -201,6 +257,8 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // 演算器数の変更
         case 'CHANGE_OP':
             var node = state.nodeInfo[state.selectTabId]
             switch (action.opID) {
@@ -221,6 +279,8 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // DFGノードの座標の再配置
         case 'ARRANGE_COORDINATES':
             var node = state.nodeInfo[state.selectTabId]
             var nodeY = node.nodeY
@@ -287,6 +347,8 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // ライフタイム解析
         case 'ANALYSIS_LIFETIME':
             var node = state.nodeInfo[state.selectTabId]
             var nodeEdge1 = node.nodeEdge1
@@ -360,6 +422,8 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // スケジューリング - ノードの自動配置
         case 'TIMESET_NODE':
             var node = state.nodeInfo[state.selectTabId]
             var nodeY = node.nodeY
@@ -386,6 +450,8 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // スケジューリングの確定
         case 'SET_SDFG':
             var node = state.nodeInfo[state.selectTabId]
             node.nodeType = action.nodeType
@@ -457,6 +523,8 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // レジスタ数の変更
         case 'CHANGE_REGISTER':
             var node = state.nodeInfo[state.selectTabId]
             node.reg = action.reg
@@ -464,6 +532,8 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // レジスタ割当 - ライフタイムの移動
         case 'MOVE_LIFETIME':
             var node = state.nodeInfo[state.selectTabId]
             var registerX = node.registerX
@@ -472,6 +542,8 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // バインディング - レジスタ割当の確定
         case 'SET_REGISTER':
             var node = state.nodeInfo[state.selectTabId]
             var registerX = node.registerX
@@ -521,6 +593,8 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // 演算器の指定
         case 'CHANGE_ALU':
             var node = state.nodeInfo[state.selectTabId]
             node.ALUValue = action.value
@@ -528,6 +602,8 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // 演算器割当
         case 'PAINT_NODE':
             var node = state.nodeInfo[state.selectTabId]
             if (node.ALUValue === '') {
@@ -570,6 +646,8 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // バインディング - 自動割当配置
         case 'USE_REGISTER_ALU':
             var node = state.nodeInfo[state.selectTabId]
             node.reg = action.reg
@@ -587,6 +665,8 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // RTL回路生成
         case 'CALCULATE_CF':
             var node = state.nodeInfo[state.selectTabId]
             var rtlNode = action.rtlNode
@@ -1081,6 +1161,8 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // 動作記述 - 作成
         case 'CHANGE_CODE' :
             var node = state.nodeInfo[state.selectTabId]
             node.code = action.code
@@ -1088,6 +1170,8 @@ export default function reducer (state = initialState, action) {
                 ...state,
                 nodeInfo: state.nodeInfo.map(el => el === state.nodeInfo[state.selectTabId] ? node : el)
             }
+
+        // 動作記述からDFG変換時のノード配置
         case 'SET_NODE_TXY' :
             var node = state.nodeInfo[state.selectTabId]
             node.nodeType = action.nodeType

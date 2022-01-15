@@ -1,3 +1,4 @@
+/* アプリ全体 */
 .app {
   margin: 0;
   text-align: left;
@@ -15,6 +16,7 @@ div, p, img, ul, ol {
   user-select: none;
 }
 
+/* アプリ-左側 */
 .left {
   width: 240px;
   flex-shrink: 0;
@@ -22,6 +24,7 @@ div, p, img, ul, ol {
   flex-direction: column;
 }
 
+/* アプリ-右側 */
 .right {
   flex-grow: 1;
   height: 100%;
@@ -29,6 +32,7 @@ div, p, img, ul, ol {
   flex-direction: column;
 }
 
+/* エクスプローラ */
 .explorer {
   height: 180px;
   flex-shrink: 0;
@@ -37,12 +41,15 @@ div, p, img, ul, ol {
   background: #2F4F4F;
 }
 
+
+/* ツール */
 .tools {
   flex-grow: 1;
   min-height: 100%;
   background: #2F4F4F;
 }
 
+/* プロセスナビゲータ */
 .navigator {
   height: 54px;
   flex-grow: 0;
@@ -50,14 +57,16 @@ div, p, img, ul, ol {
   background: #2F4F4F;
 }
 
+/* テキストエディタ */
 .editor {
   flex-grow: 1;
 }
+/* キャンバス */
 .canvas {
   background-image: url("./canvas-bg.gif");
 }
 
-/* エクスプローラー */
+/* エクスプローラー 詳細 */
 .menu {
   flex-grow: 0;
   flex-shrink: 0;
@@ -153,6 +162,52 @@ div, p, img, ul, ol {
 .tools-menu2 div {
   cursor: pointer;
 }
+.tools-menu2 .prev-btn {
+  cursor: pointer;
+  background-color: #2F4F4F;
+  border: ridge 2px white;
+  color: white;
+  font-size: 14px;
+  padding: 2px 5px;
+}
+.tools-menu2 .prev-btn:hover {
+  border: ridge 2px #FF6699;
+  color: #FF6699;
+}
+.tools-menu2 .prev-btn::before {
+  display: inline-block;
+  content: "▲";
+  -webkit-transform: rotate(-90deg);
+  -moz-transform: rotate(-90deg);
+  -o-transform: rotate(-90deg);
+  -ms-transform: rotate(-90deg);
+  transform: rotate(-90deg);
+  margin: auto 2px;
+}
+.tools-menu2 .next-btn {
+  cursor: pointer;
+  background-color: #2F4F4F;
+  color: white;
+  border: ridge 2px white;
+  font-size: 14px;
+  margin-left: auto;
+  padding: 2px 5px;
+}
+.tools-menu2 .next-btn:hover, .next-btn:focus {
+  border: ridge 2px #53FF70;
+  color: #53FF70;
+  outline: none;
+}
+.tools-menu2 .next-btn::after {
+  display: inline-block;
+  content: "▲";
+  -webkit-transform: rotate(90deg);
+  -moz-transform: rotate(90deg);
+  -o-transform: rotate(90deg);
+  -ms-transform: rotate(90deg);
+  transform: rotate(90deg);
+  margin: auto 2px;
+}
 .tools-menu2 label {
   color: white;
   margin: 3px;
@@ -165,12 +220,31 @@ div, p, img, ul, ol {
   font-size: 14px;
   margin: 0 0 0 25px;
 }
+.tools-menu2 .ma .cycle-txtbox{
+  background-color: white;
+  margin: 0 0 0 10px;
+  width: 40px;
+  outline: none;
+}
 .tools-menu2 label .txtbox {
+  background-color: white;
   margin: 0 0 0 30px;
   width: 100px;
+  outline: none;
 }
-.tools-menu2 label .op {
+.tools-menu2 label .txtbox option {
+  padding: 5px;
+}
+.tools-menu2 .op-box {
+  margin: 0 0 0 10px;
+  font-weight: bold;
+  font-size: 14px;
+}
+.tools-menu2 .op-box .op {
+  background-color: white;
+  margin: 0 10px 0 5px;
   width: 30px;
+  outline: none;
 }
 .tools-menu2 label .btn {
   background-color: #2F4F4F;
@@ -188,7 +262,8 @@ div, p, img, ul, ol {
 .dfg-icon2 {
   width: 34px;
   background-color: rgb(58, 95, 95);
-  border: 2px solid black;
+  padding: 1px 1px;
+  border: 1px solid #111111;
 }
 .tools-title {
   width: 100%;
@@ -225,7 +300,7 @@ div, p, img, ul, ol {
   font-size: 14px;
 }
 .hls-nav2 {
-  color: #FF5370;
+  color: #53FF70;
   font-size: 14px;
   font-weight: bold;
 }
